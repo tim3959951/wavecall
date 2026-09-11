@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wavecall</title>
+<meta name="description" content="A trained policy that ranks your next upgrade in The Tower — measured against a control, not a promise.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap">
+<style>
+:root{
+  --ground:#0A0E17;
+  --surface:#111726;
+  --raised:#18203300;
+  --line:#212B42;
+  --line-soft:#1A2235;
+  --ink:#E9EDF6;
+  --muted:#8B96B0;
+  --accent:#3DDCC6;
+  --accent-deep:#1C8478;
+  --control:#F2765C;
+  --warn:#F0B23C;
+  --warn-bg:#1E1710;
+  --warn-line:#4A381C;
+  --display:"Syne","Trebuchet MS",sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono","SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#F6F7FB;
+    --surface:#FFFFFF;
+    --line:#DDE2EE;
+    --line-soft:#EAEEF6;
+    --ink:#131A2B;
+    --muted:#5B6580;
+    --accent:#0B8C7C;
+    --accent-deep:#8FD5CC;
+    --control:#C4462A;
+    --warn:#8A5A05;
+    --warn-bg:#FDF5E6;
+    --warn-line:#E8D2A4;
+  }
+}
+:root[data-theme="light"]{
+  --ground:#F6F7FB;--surface:#FFFFFF;--line:#DDE2EE;--line-soft:#EAEEF6;
+  --ink:#131A2B;--muted:#5B6580;--accent:#0B8C7C;--accent-deep:#8FD5CC;
+  --control:#C4462A;--warn:#8A5A05;--warn-bg:#FDF5E6;--warn-line:#E8D2A4;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--body);font-size:16.5px;line-height:1.6;
+  padding-inline:22px;position:relative;overflow-x:hidden;
+}
+/* 塔的射程圈 —— 遊戲畫面裡那組同心圓，壓到最暗當作底紋 */
+.rings{
+  position:fixed;top:-360px;right:-300px;width:920px;height:920px;
+  pointer-events:none;z-index:0;opacity:.5;
+}
+.rings svg{width:100%;height:100%;display:block}
+.glow{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(820px 520px at 78% -8%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 68%),
+    radial-gradient(680px 460px at 8% 102%, color-mix(in srgb, var(--control) 9%, transparent), transparent 70%);
+}
+.wrap{position:relative;z-index:1}
+.wrap{max-width:760px;margin-inline:auto;padding-block:0 80px}
+a{color:var(--accent);text-underline-offset:3px}
+[hidden]{display:none!important}
+
+/* masthead */
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding-block:26px 0;
+}
+.mark{
+  font-family:var(--display);font-weight:800;font-size:21px;letter-spacing:-.02em;
+}
+.mark i{font-style:normal;color:var(--accent)}
+.lang{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.lang button{
+  background:var(--surface);color:var(--muted);border:0;cursor:pointer;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 11px;
+}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--ground);font-weight:600}
+
+/* hero */
+.hero{padding-block:40px 0}
+.tag{
+  font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 16px;
+}
+h1{
+  font-family:var(--display);font-weight:700;
+  font-size:clamp(34px,7.2vw,58px);line-height:1.04;letter-spacing:-.032em;
+  margin:0 0 18px;text-wrap:balance;
+}
+.lede{font-size:19px;line-height:1.55;color:var(--muted);margin:0 0 26px;max-width:58ch}
+.lede b{color:var(--ink);font-weight:500}
+
+h2{
+  font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:-.02em;
+  margin:0 0 12px;text-wrap:balance;
+}
+h3{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:-.01em;margin:0 0 6px}
+p{margin:0 0 15px}
+section{padding-block:46px;border-top:1px solid var(--line-soft)}
+
+/* chart */
+figure.plot{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:22px 18px 16px}
+figure.plot svg{display:block;width:100%;height:auto}
+figcaption{
+  font-family:var(--mono);font-size:12px;line-height:1.65;color:var(--muted);
+  margin-top:16px;padding-top:13px;border-top:1px solid var(--line-soft);
+}
+figcaption b{color:var(--ink);font-weight:600}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:26px;margin:28px 0 0}
+.stats dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.stats dd{margin:0;font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.stats dd small{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted);margin-left:6px}
+
+/* tiers */
+.tiers{display:grid;grid-template-columns:1fr;gap:16px;margin-top:22px}
+@media (min-width:620px){.tiers{grid-template-columns:1fr 1fr}}
+.tier{border:1px solid var(--line);border-radius:4px;padding:22px;background:var(--surface);display:flex;flex-direction:column;gap:10px}
+.tier.lead{border-color:var(--accent-deep)}
+.tier .badge{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent);
+}
+.tier.second .badge{color:var(--muted)}
+.tier p{color:var(--muted);margin:0;font-size:15px}
+.tier .price{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:auto;padding-top:4px}
+.tier .go{
+  display:inline-flex;align-items:center;gap:7px;align-self:flex-start;margin-top:4px;
+  font-family:var(--display);font-weight:700;font-size:14.5px;letter-spacing:-.01em;
+  text-decoration:none;border-radius:3px;padding:9px 16px;
+}
+.tier.lead .go{background:var(--accent);color:var(--ground)}
+.tier.lead .go:hover{background:var(--ink)}
+.tier.second .go{border:1px solid var(--line);color:var(--ink);background:transparent}
+.tier.second .go:hover{border-color:var(--accent);color:var(--accent)}
+.tier .go span{font-family:var(--mono);font-weight:400;opacity:.7}
+
+/* demo */
+.demo{margin-top:20px;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
+.demo video{display:block;width:100%;height:auto;background:#000}
+.demo .cap{
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+  padding:12px 16px;border-top:1px solid var(--line-soft);
+}
+
+/* flow */
+ol.flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
+ol.flow li{display:flex;gap:16px}
+ol.flow .k{
+  font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent);flex:0 0 64px;padding-top:3px;
+}
+ol.flow p{margin:0;color:var(--muted)}
+
+/* risk */
+.risk{background:var(--warn-bg);border:1px solid var(--warn-line);border-left:3px solid var(--warn);border-radius:4px;padding:22px}
+.risk h2{color:var(--warn);font-size:20px}
+.risk p{color:var(--ink);font-size:15.5px}
+.risk p:last-child{margin-bottom:0}
+
+/* form */
+form{display:flex;flex-direction:column;gap:14px;margin-top:8px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+input[type=email]{
+  flex:1 1 240px;min-width:0;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line);border-radius:3px;padding:13px 15px;
+  font-family:var(--mono);font-size:15px;
+}
+input[type=email]::placeholder{color:var(--muted);opacity:.65}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.cta{
+  background:var(--accent);color:var(--ground);border:0;border-radius:3px;padding:13px 26px;cursor:pointer;
+  font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-.01em;
+}
+button.cta:hover{background:var(--ink)}
+.check{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:var(--muted)}
+.check input{margin-top:5px;accent-color:var(--accent);flex:0 0 auto}
+.fine{font-size:13.5px;color:var(--muted);margin:0}
+
+footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 0;
+  font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<div class="rings" aria-hidden="true">
+  <svg viewBox="0 0 400 400" fill="none">
+    <circle cx="200" cy="200" r="196" stroke="var(--accent)" stroke-opacity=".16"></circle>
+    <circle cx="200" cy="200" r="152" stroke="var(--accent)" stroke-opacity=".12"></circle>
+    <circle cx="200" cy="200" r="108" stroke="var(--accent)" stroke-opacity=".09"></circle>
+    <circle cx="200" cy="200" r="64"  stroke="var(--accent)" stroke-opacity=".07"></circle>
+    <path d="M200 156 L238 178 L238 222 L200 244 L162 222 L162 178 Z"
+          stroke="var(--accent)" stroke-opacity=".22"></path>
+    <circle cx="200" cy="4"   r="3.5" fill="var(--control)" fill-opacity=".5"></circle>
+    <circle cx="352" cy="290" r="3"   fill="var(--control)" fill-opacity=".35"></circle>
+    <circle cx="66"  cy="128" r="2.5" fill="var(--accent)"  fill-opacity=".4"></circle>
+  </svg>
+</div>
+<div class="wrap">
+
+<div class="top">
+  <div class="mark">Wave<i>call</i></div>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+  </div>
+</div>
+
+<div class="hero">
+  <p class="tag" data-en="Early access · The Tower" data-zh="早期版本 · The Tower">Early access · The Tower</p>
+  <h1 data-en="Know which upgrade is worth your cash." data-zh="知道這一波的錢該花在哪。">Know which upgrade is worth your cash.</h1>
+  <p class="lede"
+     data-en="Wavecall is a reinforcement-learning policy trained on a simulation of The Tower. Tell it where your account stands and it ranks your next upgrade — <b>not from a spreadsheet someone guessed at, but from a policy that learned by playing.</b>"
+     data-zh="Wavecall 是一個在 The Tower 模擬環境裡訓練出來的強化學習策略。你告訴它帳號目前的狀態，它排出這一波該買什麼 —— <b>不是別人憑感覺列的表，是一個靠玩出來的策略。</b>">
+  </p>
+</div>
+
+<section style="border-top:0;padding-top:8px">
+  <figure class="plot">
+    <svg viewBox="0 0 800 210" role="img"
+      aria-label="Dot plot. Wavecall reached waves 101, 102, 127, 127 and 138 (mean 119.0). A damage-only control reached 51, 68, 69, 69 and 71 (mean 65.6).">
+      <g stroke="var(--line)" stroke-width="1">
+        <line x1="170" y1="34" x2="170" y2="168"></line>
+        <line x1="370" y1="34" x2="370" y2="168"></line>
+        <line x1="570" y1="34" x2="570" y2="168"></line>
+        <line x1="770" y1="34" x2="770" y2="168"></line>
+      </g>
+      <line x1="170" y1="168" x2="770" y2="168" stroke="var(--line)" stroke-width="1.5"></line>
+
+      <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600">
+        <text x="8" y="60" fill="var(--accent)">Wavecall</text>
+        <text x="8" y="128" fill="var(--control)" data-en="Damage only" data-zh="只點攻擊力">Damage only</text>
+      </g>
+      <g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">
+        <text x="8" y="75">5 runs</text>
+        <text x="8" y="143">5 runs</text>
+      </g>
+
+      <line x1="646" y1="42" x2="646" y2="84" stroke="var(--accent)" stroke-width="2"></line>
+      <line x1="432" y1="110" x2="432" y2="152" stroke="var(--control)" stroke-width="2"></line>
+      <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600">
+        <text x="646" y="35" text-anchor="middle" fill="var(--accent)">119.0</text>
+        <text x="432" y="103" text-anchor="middle" fill="var(--control)">65.6</text>
+      </g>
+
+      <g fill="var(--accent)" fill-opacity=".5" stroke="var(--accent)" stroke-width="1.5">
+        <circle cx="574" cy="57" r="6.5"></circle>
+        <circle cx="578" cy="70" r="6.5"></circle>
+        <circle cx="678" cy="57" r="6.5"></circle>
+        <circle cx="678" cy="70" r="6.5"></circle>
+        <circle cx="722" cy="63.5" r="6.5"></circle>
+      </g>
+      <g fill="var(--control)" fill-opacity=".45" stroke="var(--control)" stroke-width="1.5">
+        <circle cx="374" cy="131" r="6.5"></circle>
+        <circle cx="442" cy="124.5" r="6.5"></circle>
+        <circle cx="446" cy="137" r="6.5"></circle>
+        <circle cx="446" cy="124.5" r="6.5"></circle>
+        <circle cx="454" cy="131" r="6.5"></circle>
+      </g>
+
+      <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)" text-anchor="middle">
+        <text x="170" y="185">0</text><text x="370" y="185">50</text>
+        <text x="570" y="185">100</text><text x="770" y="185">150</text>
+      </g>
+      <text x="470" y="203" font-family="IBM Plex Mono, monospace" font-size="10"
+        fill="var(--muted)" text-anchor="middle" letter-spacing="1.5"
+        data-en="WAVES SURVIVED" data-zh="撐過的波數">WAVES SURVIVED</text>
+    </svg>
+    <figcaption
+      data-en="Ten real runs on one account — Tier 2, 4× speed, five each. Same account, same tier, same session. <b>+53.4 waves, Welch t = 6.44.</b> Spread is drawn as measured (SD 16.6 and 8.2); nothing is smoothed."
+      data-zh="同一個帳號上的十輪實機 —— Tier 2、四倍速、各五輪。同帳號、同分頁、同一天。<b>差距 +53.4 波，Welch t = 6.44。</b>散布就是實測值（標準差 16.6 與 8.2），沒有平滑過。">
+    </figcaption>
+  </figure>
+
+  <dl class="stats">
+    <div><dt data-en="vs damage-only" data-zh="相對只點攻擊力">vs damage-only</dt><dd>1.81×</dd></div>
+    <div><dt data-en="mean waves" data-zh="平均波數">mean waves</dt><dd>119.0<small>± 16.6</small></dd></div>
+    <div><dt data-en="waves missed" data-zh="漏掉的波">waves missed</dt><dd>0<small data-en="of 10 runs" data-zh="／十輪">of 10 runs</small></dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2 data-en="Two ways to use it" data-zh="兩種用法">Two ways to use it</h2>
+  <div class="tiers">
+    <div class="tier lead">
+      <div class="badge" data-en="Free · in the browser" data-zh="免費 · 網頁版">Free · in the browser</div>
+      <h3 data-en="The planner" data-zh="規劃器">The planner</h3>
+      <p data-en="Enter your workshop levels, cards and tier. Get the upgrade order the policy would take, and what it expects each one to buy you. Works on any device. Nothing touches the game."
+         data-zh="輸入你的工坊等級、卡片和 Tier，它給出策略會採取的升級順序，以及每一項預期換到多少。任何裝置都能用，完全不碰遊戲。">Enter your workshop levels, cards and tier. Get the upgrade order the policy would take, and what it expects each one to buy you. Works on any device. Nothing touches the game.</p>
+      <a class="go" href="planner.html" data-en="Open the planner <span>&rarr;</span>" data-zh="打開規劃器 <span>&rarr;</span>">Open the planner <span>&rarr;</span></a>
+      <div class="price" data-en="Free, no account needed" data-zh="免費，不用註冊">Free, no account needed</div>
+    </div>
+    <div class="tier second">
+      <div class="badge" data-en="Waitlist · macOS" data-zh="候補名單 · macOS">Waitlist · macOS</div>
+      <h3 data-en="The live reader" data-zh="即時版">The live reader</h3>
+      <p data-en="Runs on a Mac, reads your game through iPhone Mirroring, and <b>taps the upgrades for you</b> while you are away. Nothing to type in. Places are limited — right now I set up each person's Mac myself."
+         data-zh="跑在 Mac 上，透過 iPhone 鏡像讀你的遊戲，在你離開的時候<b>替你點下升級</b>。不用輸入任何數字。名額有限 —— 目前每一台 Mac 的設定都是我親自幫你做的。"></p>
+      <a class="go" href="#demo" data-en="Watch it play <span>&rarr;</span>" data-zh="看它實際跑 <span>&rarr;</span>">Watch it play <span>&rarr;</span></a>
+      <div class="price" data-en="$4.99 / month when it opens" data-zh="開放後每月 4.99 美元">$4.99 / month when it opens</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 data-en="How it decides" data-zh="它怎麼決定">How it decides</h2>
+  <ol class="flow">
+    <li><div class="k" data-en="Reads">Reads</div>
+      <p data-en="Your real numbers — cash, tower HP, enemy scaling, and the live panel value and price of every upgrade. Not a default account, not a wiki table."
+         data-zh="你的真實數值 —— 現金、塔血量、敵人成長，以及每一格升級當下的面板值和價格。不是預設帳號，也不是 wiki 上的表。">Your real numbers — cash, tower HP, enemy scaling, and the live panel value and price of every upgrade. Not a default account, not a wiki table.</p></li>
+    <li><div class="k" data-en="Ranks">Ranks</div>
+      <p data-en="A policy trained with PPO scores every upgrade by how much longer it expects that money to keep you alive. The answer changes as your account grows."
+         data-zh="一個用 PPO 訓練的策略替每一項打分：這筆錢花下去預期能多撐多久。帳號變強，答案就會改變。">A policy trained with PPO scores every upgrade by how much longer it expects that money to keep you alive. The answer changes as your account grows.</p></li>
+    <li><div class="k" data-en="Checks">Checks</div>
+      <p data-en="The numbers here come from running Wavecall and a deliberately dumb strategy on the same account, back to back, on the same day. When the gap is too small to measure, I say so instead of printing a number anyway."
+         data-zh="這頁上的數字，是讓 Wavecall 和一個刻意很笨的策略在同一個帳號、同一天輪流跑出來的。差距小到量不出來的時候，我會直說量不出來，而不是硬印一個數字上去。">The numbers here come from running Wavecall and a deliberately dumb strategy on the same account, back to back, on the same day. When the gap is too small to measure, I say so instead of printing a number anyway.</p></li>
+  </ol>
+</section>
+
+<section>
+  <div class="risk">
+    <h2 data-en="Read this before the waitlist" data-zh="留信箱之前先讀這段">Read this before the waitlist</h2>
+    <p data-en="<b>The planner only does maths — it never touches your game.</b> The live reader is different: it operates your phone through iPhone Mirroring, and automation of that kind is against The Tower's rules. Accounts can be suspended for it."
+       data-zh="<b>規劃器只是算數學，完全不碰你的遊戲。</b>即時版不一樣：它會透過 iPhone 鏡像操作你的手機，而這類自動化違反 The Tower 的規則，帳號可能被停權。"></p>
+    <p data-en="I can't tell you the odds of being caught, and I can't get an account back. If yours matters to you, take the planner and leave the live reader alone."
+       data-zh="我沒辦法告訴你被抓到的機率，也沒辦法把帳號救回來。如果那個帳號對你重要，就用規劃器，別碰即時版。">I can't tell you the odds of being caught, and I can't get an account back. If yours matters to you, take the planner and leave the live reader alone.</p>
+    <p data-en="What it never does: modify the game, inject anything into it, or hand you resources the game would not. Coins and gems it picks up are coins and gems you played for — it just plays faster, smarter, and never gets tired."
+       data-zh="它從不做的事：修改遊戲、注入任何東西、或給你遊戲本來不會給的資源。它收到的金幣和鑽石，都是打出來的 —— 它只是打得比較快、比較聰明，而且不會累。">What it never does: modify the game, inject anything into it, or hand you resources the game would not. Coins and gems it picks up are coins and gems you played for — it just plays faster, smarter, and never gets tired.</p>
+  </div>
+</section>
+
+<section id="demo">
+  <h2 data-en="One minute, unedited" data-zh="一分鐘，沒有剪接">One minute, unedited</h2>
+  <p data-en="A Tier 2 run with nobody at the keyboard. It reads the panel, buys the upgrade it ranked first, collects the gems, and starts the next round on its own."
+     data-zh="一局 Tier 2，全程沒有人在鍵盤前。它讀面板、買下它排第一的升級、收鑽石，然後自己開下一局。">A Tier 2 run with nobody at the keyboard. It reads the panel, buys the upgrade it ranked first, collects the gems, and starts the next round on its own.</p>
+  <div class="demo">
+    <video controls preload="none" playsinline poster="/demo-poster.jpg" width="1280" height="720">
+      <source src="/demo.mp4" type="video/mp4">
+    </video>
+    <div class="cap" data-en="Recorded on the developer&rsquo;s own account. Speed shown is the game&rsquo;s own 4&times; setting, not sped-up footage."
+         data-zh="錄自開發者自己的帳號。畫面速度是遊戲本身的 4 倍速設定，不是後製快轉。">Recorded on the developer&rsquo;s own account. Speed shown is the game&rsquo;s own 4&times; setting, not sped-up footage.</div>
+  </div>
+</section>
+
+<section>
+  <h2 data-en="Get told when it opens" data-zh="開放時通知我">Get told when it opens</h2>
+  <p class="fine" style="margin-bottom:14px"
+     data-en="One email when the planner goes live. Nothing else, ever."
+     data-zh="規劃器上線時寄一封信給你，不會有別的。">One email when the planner goes live. Nothing else, ever.</p>
+
+  <form id="waitlist" name="waitlist" method="POST">
+    <p hidden><label>Leave this empty <input name="company" id="company"></label></p>
+
+    <div class="row">
+      <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
+      <button class="cta" type="submit" data-en="Join the list" data-zh="加入名單">Join the list</button>
+    </div>
+
+    <div class="check">
+      <input type="checkbox" id="ack" name="ack" value="yes" required>
+      <label for="ack"
+        data-en="I know the live reader plays the game for me, that automation is against The Tower's rules, and that my account is mine to risk."
+        data-zh="我知道即時版會替我操作遊戲、自動化違反 The Tower 的規則，而帳號的風險由我自己承擔。">
+        I know the live reader plays the game for me, that automation is against The Tower&rsquo;s rules, and that my account is mine to risk.
+      </label>
+    </div>
+
+    <p class="fine" id="formmsg" role="status" hidden></p>
+    <p class="fine" data-en="Reply to any email to be removed. Your address is never shared."
+       data-zh="回任何一封信就能退出。信箱不會給任何人。">Reply to any email to be removed. Your address is never shared.</p>
+  </form>
+</section>
+
+<footer data-en="Wavecall is an independent third-party tool. It is not affiliated with, endorsed by, or connected to Tech Tree Games or The Tower."
+        data-zh="Wavecall 是獨立開發的第三方工具，與 Tech Tree Games 及 The Tower 沒有任何關聯，也未獲其背書。">
+  Wavecall is an independent third-party tool. It is not affiliated with, endorsed by, or connected to Tech Tree Games or The Tower.
+</footer>
+
+</div>
+
+<script>
+/* ------------------------------------------------------------------
+   候補名單的收件位置。
+   GitHub Pages 是純靜態主機，**沒有任何後端**，所以表單不能只靠 HTML。
+   在 Formspree（免費方案）開一個表單，把它給你的網址貼到下面這一行。
+   沒設定之前，送出會退回成寄信 —— 寧可讓人看到「要寄信」，
+   也不要讓表單看起來送出成功、其實什麼都沒收到。
+------------------------------------------------------------------- */
+var FORM_ENDPOINT = "";              // 例如 "https://formspree.io/f/xxxxxxx"
+var FALLBACK_EMAIL = "tim909tim909@gmail.com";
+
+(function(){
+  var f = document.getElementById('waitlist');
+  var msg = document.getElementById('formmsg');
+  function say(t, ok){
+    msg.textContent = t; msg.hidden = false;
+    msg.style.color = ok ? 'var(--accent)' : 'var(--warn)';
+  }
+  f.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = f.querySelector('#email').value.trim();
+    if (!email) return;
+    var zh = document.documentElement.lang.indexOf('zh') === 0;
+    if (!FORM_ENDPOINT) {
+      window.location.href = 'mailto:' + FALLBACK_EMAIL +
+        '?subject=' + encodeURIComponent('Wavecall waitlist') +
+        '&body=' + encodeURIComponent(email);
+      say(zh ? '幫你開了郵件視窗，寄出就算報名。' : 'Opened your mail app — send it and you are on the list.', true);
+      return;
+    }
+    fetch(FORM_ENDPOINT, {
+      method: 'POST',
+      headers: {'Accept':'application/json','Content-Type':'application/json'},
+      body: JSON.stringify({email: email})
+    }).then(function(r){
+      if (r.ok) { f.reset(); say(zh ? '收到了，開放時會寄信給你。' : "Got it — I'll email you when it opens.", true); }
+      else { say(zh ? '送出失敗，請直接寄信給我：' + FALLBACK_EMAIL : 'That did not go through. Email me instead: ' + FALLBACK_EMAIL, false); }
+    }).catch(function(){
+      say(zh ? '送出失敗，請直接寄信給我：' + FALLBACK_EMAIL : 'That did not go through. Email me instead: ' + FALLBACK_EMAIL, false);
+    });
+  });
+})();
+
+(function(){
+  var nodes = document.querySelectorAll('[data-en]');
+  var btns  = document.querySelectorAll('.lang button');
+  function set(lang){
+    document.documentElement.lang = (lang === 'zh') ? 'zh-Hant' : 'en';
+    nodes.forEach(function(n){
+      var v = n.getAttribute('data-' + lang);
+      if (v === null) return;
+      if (n.namespaceURI && n.namespaceURI.indexOf('svg') !== -1) n.textContent = v;
+      else n.innerHTML = v;
+    });
+    btns.forEach(function(b){
+      b.setAttribute('aria-pressed', String(b.dataset.lang === lang));
+    });
+    try { localStorage.setItem('wc-lang', lang); } catch (e) {}
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ set(b.dataset.lang); }); });
+  var saved = null;
+  try { saved = localStorage.getItem('wc-lang'); } catch (e) {}
+  if (!saved) saved = (navigator.language || '').toLowerCase().indexOf('zh') === 0 ? 'zh' : 'en';
+  // 兩種語言都要跑一次：頁面上有些元素只帶 data-* 屬性，標籤內是空的。
+  // 舊版只在 zh 時呼叫 set()，英文使用者就看到一片空白。
+  set(saved);
+})();
+</script>
+</body>
+</html>

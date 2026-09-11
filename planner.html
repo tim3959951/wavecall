@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Spend Planner</title>
+<meta name="description" content="What your cash actually buys in The Tower, upgrade by upgrade — from the real cost table.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap">
+<style>
+:root{
+  --ground:#0A0E17;--surface:#111726;--line:#212B42;--line-soft:#1A2235;
+  --ink:#E9EDF6;--muted:#8B96B0;--accent:#3DDCC6;--accent-deep:#1C8478;
+  --control:#F2765C;--warn:#F0B23C;
+  --display:"Syne","Trebuchet MS",sans-serif;
+  --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono","SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ground:#F6F7FB;--surface:#FFFFFF;--line:#DDE2EE;--line-soft:#EAEEF6;
+    --ink:#131A2B;--muted:#5B6580;--accent:#0B8C7C;--accent-deep:#8FD5CC;
+    --control:#C4462A;--warn:#8A5A05;
+  }
+}
+:root[data-theme="light"]{
+  --ground:#F6F7FB;--surface:#FFFFFF;--line:#DDE2EE;--line-soft:#EAEEF6;
+  --ink:#131A2B;--muted:#5B6580;--accent:#0B8C7C;--accent-deep:#8FD5CC;
+  --control:#C4462A;--warn:#8A5A05;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--body);font-size:16px;line-height:1.55;padding-inline:22px;
+}
+.wrap{max-width:860px;margin-inline:auto;padding-block:0 72px}
+a{color:var(--accent)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-block:24px 0}
+.mark{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
+.mark i{font-style:normal;color:var(--accent)}
+.lang{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.lang button{background:var(--surface);color:var(--muted);border:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 11px}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--ground);font-weight:600}
+
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5.4vw,42px);line-height:1.08;letter-spacing:-.03em;margin:34px 0 14px;text-wrap:balance}
+.lede{color:var(--muted);font-size:17.5px;max-width:60ch;margin:0 0 26px}
+.lede b{color:var(--ink);font-weight:500}
+
+.bar{
+  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;
+  background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:10px;
+}
+.f{display:flex;flex-direction:column;gap:6px}
+label{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+input[type=number]{
+  background:var(--ground);color:var(--ink);border:1px solid var(--line);border-radius:3px;
+  padding:10px 12px;font-family:var(--mono);font-size:16px;width:150px;
+  font-variant-numeric:tabular-nums;
+}
+input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:0 0 26px}
+
+.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:right;padding:11px 14px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+thead th{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);
+}
+tbody tr:last-child td{border-bottom:0}
+td{font-family:var(--mono);font-size:14.5px;font-variant-numeric:tabular-nums}
+td.name{font-family:var(--body);font-size:15px;color:var(--ink)}
+td .lvl{
+  width:74px;background:var(--ground);color:var(--ink);border:1px solid var(--line);
+  border-radius:3px;padding:6px 8px;font-family:var(--mono);font-size:14px;text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+td.buy{font-weight:600;font-size:16px}
+tr.hot td.buy{color:var(--accent)}
+tr.cold td.buy{color:var(--control)}
+tr.maxed td{color:var(--muted)}
+.dim{color:var(--muted)}
+
+.note{
+  border-left:3px solid var(--warn);background:color-mix(in srgb, var(--warn) 9%, transparent);
+  border-radius:3px;padding:16px 18px;margin-top:28px;font-size:15px;
+}
+.note h2{font-family:var(--display);font-size:17px;margin:0 0 8px;color:var(--warn)}
+.note p{margin:0 0 10px;color:var(--ink)}
+.note p:last-child{margin:0}
+footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 0;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="top">
+  <a class="mark" href="/">Wave<i>call</i></a>
+  <div class="lang" role="group" aria-label="Language">
+    <button type="button" data-lang="en" aria-pressed="true">EN</button>
+    <button type="button" data-lang="zh" aria-pressed="false">中文</button>
+  </div>
+</div>
+
+<h1 data-en="What your cash actually buys" data-zh="你的錢實際上買得到什麼">What your cash actually buys</h1>
+<p class="lede"
+   data-en="Prices climb at wildly different rates. At the same moment, $5,000 can buy you <b>zero</b> levels of one upgrade and <b>twenty-nine</b> of another. Put in your levels and see it."
+   data-zh="每一項的價格爬升速度差得非常遠。同一個瞬間，5,000 塊在某一項上是 <b>0 級</b>，在另一項上是 <b>29 級</b>。填入你的等級就看得到。">
+  Prices climb at wildly different rates.
+</p>
+
+<div class="bar">
+  <div class="f">
+    <label for="cash" data-en="Cash on hand" data-zh="手上的現金">Cash on hand</label>
+    <input type="number" id="cash" value="5000" min="0" step="1" inputmode="numeric">
+  </div>
+  <div class="f" style="flex:1 1 260px">
+    <label data-en="Your levels — edit any row below" data-zh="你的等級 —— 直接改下面每一列">Your levels — edit any row below</label>
+    <p class="hint" style="margin:0"
+       data-en="Prefilled with a mid-game account so you can see the shape straight away."
+       data-zh="先填了一個中期帳號的數字，讓你一打開就看得到形狀。">Prefilled with a mid-game account.</p>
+  </div>
+</div>
+
+<div class="tblwrap">
+  <table>
+    <thead>
+      <tr>
+        <th data-en="Upgrade" data-zh="升級項目">Upgrade</th>
+        <th data-en="Your level" data-zh="你的等級">Your level</th>
+        <th data-en="Next level" data-zh="下一級價格">Next level</th>
+        <th data-en="Levels you can buy" data-zh="這筆錢能買幾級">Levels you can buy</th>
+        <th data-en="Spent" data-zh="會花掉">Spent</th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+      <tr><td colspan="5" class="dim" style="text-align:center;padding:28px"
+        data-en="Loading the cost table…" data-zh="正在載入花費表…">Loading the cost table…</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note">
+  <h2 data-en="What this does and doesn't tell you" data-zh="這張表說了什麼、沒說什麼">What this does and doesn&rsquo;t tell you</h2>
+  <p data-en="The prices are exact. They come from the game's own cost table, and they are the same for every account — workshop, cards and lab change what an upgrade <i>does</i>, never what it <i>costs</i>. We checked 94 measurements against a live game and all 94 matched."
+     data-zh="價格是精確的。它來自遊戲自己的花費表，而且對每個帳號都一樣 —— 工坊、卡片、實驗室會改變一項升級<i>做什麼</i>，永遠不會改變它<i>多少錢</i>。我們拿 94 筆實機量測比對過，94 筆全中。"></p>
+  <p data-en="What it can't know is how much power each level buys <i>you</i> — that depends on your own workshop and cards, and the only way to get it right is to measure it on your account while you play. That's what the live version does."
+     data-zh="它不知道的是每一級對<i>你</i>來說能換到多少實力 —— 那取決於你自己的工坊和卡片，唯一能算準的方法是在你玩的時候當場量。那是即時版在做的事。"></p>
+</div>
+
+<footer data-en="Wavecall is an independent third-party tool. Not affiliated with, endorsed by, or connected to Tech Tree Games or The Tower."
+        data-zh="Wavecall 是獨立開發的第三方工具，與 Tech Tree Games 及 The Tower 沒有任何關聯，也未獲其背書。">
+  Wavecall is an independent third-party tool.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  /* ---------- language ---------- */
+  var btns = document.querySelectorAll('.lang button');
+  var lang = 'en';
+  function paint(){
+    document.querySelectorAll('[data-en]').forEach(function(n){
+      var v = n.getAttribute('data-' + lang);
+      if (v !== null) n.innerHTML = v;
+    });
+    btns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
+    document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+  }
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      lang = b.dataset.lang;
+      try { localStorage.setItem('wc-lang', lang); } catch(e){}
+      paint(); render();
+    });
+  });
+  try { lang = localStorage.getItem('wc-lang') || lang; } catch(e){}
+  if (lang !== 'zh' && (navigator.language||'').toLowerCase().indexOf('zh') === 0) {
+    var stored = null; try { stored = localStorage.getItem('wc-lang'); } catch(e){}
+    if (!stored) lang = 'zh';
+  }
+  paint();
+
+  /* ---------- data ---------- */
+  var ZH = {
+    "Damage":"傷害","Attack Speed":"攻擊速度","Critical Chance":"爆擊率",
+    "Critical Factor":"爆擊倍率","Health":"血量","Health Regen":"每秒回血",
+    "Defense Percent":"防禦 %","Cash / Wave":"每波現金","Cash Bonus":"現金加成",
+    "Interest / Wave":"每波利息","Thorns":"荊棘傷害","Defense Absolute":"絕對防禦",
+    "Lifesteal":"吸血"
+  };
+  /* a plausible mid-game account, so the page is never empty */
+  var SEED = {
+    "Damage":29,"Attack Speed":4,"Critical Chance":14,"Critical Factor":41,
+    "Health":19,"Health Regen":0,"Defense Percent":2,"Cash / Wave":12,
+    "Cash Bonus":8,"Interest / Wave":0,"Thorns":8,"Defense Absolute":1,"Lifesteal":3
+  };
+  var COSTS = null, levels = Object.assign({}, SEED);
+  var rows = document.getElementById('rows');
+  var cashEl = document.getElementById('cash');
+
+  function fmt(n){
+    if (n === null || n === undefined) return '—';
+    return n >= 1e6 ? (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M'
+         : n >= 1e3 ? (n/1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/,'') + 'K'
+         : String(Math.round(n));
+  }
+  /* how many levels this cash buys, starting from `lv` */
+  function afford(name, lv, cash){
+    var t = COSTS[name]; if (!t) return {n:0, spent:0, next:null};
+    var n = 0, spent = 0, i = lv;
+    while (i < t.length) {
+      var c = t[i];
+      if (c === null || c === undefined) break;
+      if (spent + c > cash) break;
+      spent += c; n++; i++;
+      if (n > 20000) break;
+    }
+    var next = (lv < t.length) ? t[lv] : null;
+    return {n:n, spent:spent, next:next, max:t.length};
+  }
+
+  function render(){
+    if (!COSTS) return;
+    var cash = Math.max(0, Number(cashEl.value) || 0);
+    var out = Object.keys(COSTS).map(function(name){
+      var lv = Math.max(0, Math.floor(Number(levels[name]) || 0));
+      var a = afford(name, lv, cash);
+      return {name:name, lv:lv, a:a};
+    });
+    var most = Math.max.apply(null, out.map(function(r){ return r.a.n; }));
+    out.sort(function(x, y){ return y.a.n - x.a.n; });
+
+    rows.innerHTML = '';
+    out.forEach(function(r){
+      var tr = document.createElement('tr');
+      var maxed = r.a.next === null;
+      if (maxed) tr.className = 'maxed';
+      else if (r.a.n === most && most > 0) tr.className = 'hot';
+      else if (r.a.n === 0) tr.className = 'cold';
+
+      var label = (lang === 'zh' && ZH[r.name]) ? ZH[r.name] : r.name;
+      var cap = lang === 'zh' ? '已滿級' : 'maxed';
+      tr.innerHTML =
+        '<td class="name">' + label + '</td>' +
+        '<td><input class="lvl" type="number" min="0" step="1" inputmode="numeric" ' +
+            'value="' + r.lv + '" data-name="' + r.name + '" aria-label="' + label + '"></td>' +
+        '<td class="' + (maxed ? 'dim' : '') + '">' + (maxed ? cap : '$' + fmt(r.a.next)) + '</td>' +
+        '<td class="buy">' + (maxed ? '—' : r.a.n) + '</td>' +
+        '<td class="' + (r.a.spent ? '' : 'dim') + '">' + (r.a.spent ? '$' + fmt(r.a.spent) : '—') + '</td>';
+      rows.appendChild(tr);
+    });
+
+    rows.querySelectorAll('.lvl').forEach(function(inp){
+      inp.addEventListener('change', function(){
+        levels[inp.dataset.name] = inp.value;
+        render();
+      });
+    });
+  }
+
+  cashEl.addEventListener('input', render);
+
+  fetch("costs.json").then(function(r){ return r.json(); }).then(function(j){
+    COSTS = j; render();
+  }).catch(function(){
+    rows.innerHTML = '<tr><td colspan="5" class="dim" style="text-align:center;padding:28px">' +
+      (lang === 'zh' ? '花費表載入失敗。' : 'Could not load the cost table.') + '</td></tr>';
+  });
+})();
+</script>
+</body>
+</html>
