@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Spend Planner</title>
-<meta name="description" content="What your cash actually buys in The Tower, upgrade by upgrade — from the real cost table.">
+<title>Watch It Decide</title>
+<meta name="description" content="The actual trained policy, running in your browser. Move the cash slider and watch its priorities change.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Syne:wght@600;700;800&display=swap">
@@ -30,68 +30,76 @@
   --control:#C4462A;--warn:#8A5A05;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;background:var(--ground);color:var(--ink);
-  font-family:var(--body);font-size:16px;line-height:1.55;padding-inline:22px;
-}
-.wrap{max-width:860px;margin-inline:auto;padding-block:0 72px}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.55;padding-inline:22px}
+.wrap{max-width:800px;margin-inline:auto;padding-block:0 72px}
 a{color:var(--accent)}
 .top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-block:24px 0}
 .mark{font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:-.02em;text-decoration:none;color:var(--ink)}
 .mark i{font-style:normal;color:var(--accent)}
 .lang{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:2px;overflow:hidden}
-.lang button{background:var(--surface);color:var(--muted);border:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 11px}
+.lang button{background:var(--surface);color:var(--muted);border:0;cursor:pointer;
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 11px}
 .lang button[aria-pressed="true"]{background:var(--accent);color:var(--ground);font-weight:600}
 
-h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5.4vw,42px);line-height:1.08;letter-spacing:-.03em;margin:34px 0 14px;text-wrap:balance}
-.lede{color:var(--muted);font-size:17.5px;max-width:60ch;margin:0 0 26px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,5.4vw,42px);
+  line-height:1.08;letter-spacing:-.03em;margin:32px 0 14px;text-wrap:balance}
+.lede{color:var(--muted);font-size:17.5px;max-width:62ch;margin:0 0 8px}
 .lede b{color:var(--ink);font-weight:500}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 14px}
 
-.bar{
-  display:flex;flex-wrap:wrap;align-items:flex-end;gap:16px;
-  background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:18px;margin-bottom:10px;
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:4px;
+  padding:20px;margin:26px 0 0}
+.pick{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.pick button{
+  background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:3px;
+  padding:9px 14px;cursor:pointer;font-family:var(--mono);font-size:12.5px;line-height:1.3;
+  text-align:left;
 }
-.f{display:flex;flex-direction:column;gap:6px}
-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
-input[type=number]{
-  background:var(--ground);color:var(--ink);border:1px solid var(--line);border-radius:3px;
-  padding:10px 12px;font-family:var(--mono);font-size:16px;width:150px;
-  font-variant-numeric:tabular-nums;
-}
+.pick button b{display:block;font-family:var(--body);font-size:14px;font-weight:600;color:var(--ink)}
+.pick button[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.pick button[aria-pressed="true"] b{color:var(--accent)}
+
+.slider{display:flex;flex-direction:column;gap:8px}
+.slider .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.slider label{font-family:var(--mono);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted)}
+.slider output{font-family:var(--mono);font-size:22px;font-weight:600;color:var(--accent);
+  font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent);height:24px}
 input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:0 0 26px}
+.state{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
 
-.tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:4px;background:var(--surface)}
-table{border-collapse:collapse;width:100%;min-width:560px}
-th,td{text-align:right;padding:11px 14px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
-th:first-child,td:first-child{text-align:left;white-space:normal}
-thead th{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
-  color:var(--muted);font-weight:500;border-bottom:1px solid var(--line);
+/* ranking */
+.rank{list-style:none;margin:22px 0 0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rank li{
+  display:grid;grid-template-columns:26px 1fr auto;gap:12px;align-items:center;
+  padding:9px 12px;border-radius:3px;background:var(--surface);
+  border:1px solid var(--line-soft);
 }
-tbody tr:last-child td{border-bottom:0}
-td{font-family:var(--mono);font-size:14.5px;font-variant-numeric:tabular-nums}
-td.name{font-family:var(--body);font-size:15px;color:var(--ink)}
-td .lvl{
-  width:74px;background:var(--ground);color:var(--ink);border:1px solid var(--line);
-  border-radius:3px;padding:6px 8px;font-family:var(--mono);font-size:14px;text-align:right;
-  font-variant-numeric:tabular-nums;
-}
-td.buy{font-weight:600;font-size:16px}
-tr.hot td.buy{color:var(--accent)}
-tr.cold td.buy{color:var(--control)}
-tr.maxed td{color:var(--muted)}
-.dim{color:var(--muted)}
+.rank li.top{border-color:var(--accent-deep)}
+.rank li.out{opacity:.42}
+.rank .n{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+.rank li.top .n{color:var(--accent)}
+.rank .who{min-width:0}
+.rank .nm{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
+.rank .bar i{display:block;height:100%;background:var(--accent-deep);border-radius:2px}
+.rank li.top .bar i{background:var(--accent)}
+.rank .meta{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.rank .meta b{color:var(--ink);font-weight:600}
 
-.note{
-  border-left:3px solid var(--warn);background:color-mix(in srgb, var(--warn) 9%, transparent);
-  border-radius:3px;padding:16px 18px;margin-top:28px;font-size:15px;
-}
-.note h2{font-family:var(--display);font-size:17px;margin:0 0 8px;color:var(--warn)}
-.note p{margin:0 0 10px;color:var(--ink)}
+.note{border-left:3px solid var(--accent-deep);background:color-mix(in srgb,var(--accent) 7%,transparent);
+  border-radius:3px;padding:16px 18px;margin-top:30px;font-size:15px}
+.note h2{font-family:var(--display);font-size:17px;margin:0 0 8px}
+.note p{margin:0 0 10px}
 .note p:last-child{margin:0}
-footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 0;font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--muted)}
-@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+.note code{font-family:var(--mono);font-size:13px;color:var(--accent)}
+footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 0;
+  font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
@@ -105,87 +113,64 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
   </div>
 </div>
 
-<h1 data-en="What your cash actually buys" data-zh="你的錢實際上買得到什麼">What your cash actually buys</h1>
+<p class="tag" data-en="Free · runs in your browser" data-zh="免費 · 在你的瀏覽器裡跑">Free · runs in your browser</p>
+<h1 data-en="Watch it decide" data-zh="看它怎麼決定">Watch it decide</h1>
 <p class="lede"
-   data-en="Prices climb at wildly different rates. At the same moment, $5,000 can buy you <b>zero</b> levels of one upgrade and <b>twenty-nine</b> of another. Put in your levels and see it."
-   data-zh="每一項的價格爬升速度差得非常遠。同一個瞬間，5,000 塊在某一項上是 <b>0 級</b>，在另一項上是 <b>29 級</b>。填入你的等級就看得到。">
-  Prices climb at wildly different rates.
+   data-en="This is the trained network itself — the same 8,000 weights that played those 604 waves, running on your device. Pick a moment from a real run, then <b>drag the cash slider and watch the order change.</b>"
+   data-zh="這就是那個訓練好的網路本身 —— 跟打到 604 波的是同一組八千個權重，在你的裝置上跑。選一個真實局面，然後<b>拖動現金滑桿，看排序怎麼變。</b>">
 </p>
 
-<div class="bar">
-  <div class="f">
-    <label for="cash" data-en="Cash on hand" data-zh="手上的現金">Cash on hand</label>
-    <input type="number" id="cash" value="5000" min="0" step="1" inputmode="numeric">
-  </div>
-  <div class="f" style="flex:1 1 260px">
-    <label data-en="Your levels — edit any row below" data-zh="你的等級 —— 直接改下面每一列">Your levels — edit any row below</label>
-    <p class="hint" style="margin:0"
-       data-en="Prefilled with a mid-game account so you can see the shape straight away."
-       data-zh="先填了一個中期帳號的數字，讓你一打開就看得到形狀。">Prefilled with a mid-game account.</p>
-  </div>
-</div>
+<div class="panel">
+  <div class="pick" id="pick" role="group" aria-label="Game state"></div>
 
-<div class="tblwrap">
-  <table>
-    <thead>
-      <tr>
-        <th data-en="Upgrade" data-zh="升級項目">Upgrade</th>
-        <th data-en="Your level" data-zh="你的等級">Your level</th>
-        <th data-en="Next level" data-zh="下一級價格">Next level</th>
-        <th data-en="Levels you can buy" data-zh="這筆錢能買幾級">Levels you can buy</th>
-        <th data-en="Spent" data-zh="會花掉">Spent</th>
-      </tr>
-    </thead>
-    <tbody id="rows">
-      <tr><td colspan="5" class="dim" style="text-align:center;padding:28px"
-        data-en="Loading the cost table…" data-zh="正在載入花費表…">Loading the cost table…</td></tr>
-    </tbody>
-  </table>
+  <div class="slider">
+    <div class="head">
+      <label for="cash" data-en="Cash on hand" data-zh="手上的現金">Cash on hand</label>
+      <output id="cashout" for="cash">—</output>
+    </div>
+    <input type="range" id="cash" min="0" max="100" value="50" step="1">
+    <div class="state" id="state">—</div>
+  </div>
+
+  <ol class="rank" id="rank"></ol>
 </div>
 
 <div class="note">
-  <h2 data-en="What this does and doesn't tell you" data-zh="這張表說了什麼、沒說什麼">What this does and doesn&rsquo;t tell you</h2>
-  <p data-en="The prices are exact. They come from the game's own cost table, and they are the same for every account — workshop, cards and lab change what an upgrade <i>does</i>, never what it <i>costs</i>. We checked 94 measurements against a live game and all 94 matched."
-     data-zh="價格是精確的。它來自遊戲自己的花費表，而且對每個帳號都一樣 —— 工坊、卡片、實驗室會改變一項升級<i>做什麼</i>，永遠不會改變它<i>多少錢</i>。我們拿 94 筆實機量測比對過，94 筆全中。"></p>
-  <p data-en="What it can't know is how much power each level buys <i>you</i> — that depends on your own workshop and cards, and the only way to get it right is to measure it on your account while you play. That's what the live version does."
-     data-zh="它不知道的是每一級對<i>你</i>來說能換到多少實力 —— 那取決於你自己的工坊和卡片，唯一能算準的方法是在你玩的時候當場量。那是即時版在做的事。"></p>
+  <h2 data-en="Why this is not a lookup table" data-zh="為什麼這不是一張查表">Why this is not a lookup table</h2>
+  <p data-en="Move the slider and the order really does change — because the network weighs <i>how far this money goes</i> against <i>what the next wave will hit you with</i>. With little cash it takes the cheap levels it can actually afford; with more, it commits to the expensive one."
+     data-zh="拖滑桿，順序是真的會變 —— 因為網路在權衡「這筆錢走得多遠」和「下一波會打你多重」。錢少的時候它拿買得起的便宜等級；錢多的時候它才押那個貴的。"></p>
+  <p data-en="The prices come from the game's own cost table and are identical for every account. The situations are real states captured from a run on the developer's account — which is also the honest limit of this page: it shows you <i>its</i> account, not yours. Reading your own numbers, wave by wave, is what the Mac version does."
+     data-zh="價格來自遊戲自己的花費表，對每個帳號都一樣。局面則是從開發者帳號的實跑中擷取的真實狀態 —— 這也是這頁誠實的極限：它給你看的是<i>它的</i>帳號，不是你的。逐波讀你自己的數字，是 Mac 版在做的事。"></p>
 </div>
 
 <footer data-en="Wavecall is an independent third-party tool. Not affiliated with, endorsed by, or connected to Tech Tree Games or The Tower."
         data-zh="Wavecall 是獨立開發的第三方工具，與 Tech Tree Games 及 The Tower 沒有任何關聯，也未獲其背書。">
   Wavecall is an independent third-party tool.
 </footer>
-
 </div>
 
 <script>
 (function(){
-  /* ---------- language ---------- */
-  var btns = document.querySelectorAll('.lang button');
+  /* ---------------- language ---------------- */
   var lang = 'en';
-  function paint(){
+  try { lang = localStorage.getItem('wc-lang') || ((navigator.language||'').toLowerCase().indexOf('zh')===0 ? 'zh':'en'); } catch(e){}
+  function paintLang(){
     document.querySelectorAll('[data-en]').forEach(function(n){
-      var v = n.getAttribute('data-' + lang);
-      if (v !== null) n.innerHTML = v;
+      var v = n.getAttribute('data-'+lang); if (v!==null) n.innerHTML = v;
     });
-    btns.forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.lang === lang)); });
-    document.documentElement.lang = lang === 'zh' ? 'zh-Hant' : 'en';
+    document.querySelectorAll('.lang button').forEach(function(b){
+      b.setAttribute('aria-pressed', String(b.dataset.lang===lang));
+    });
+    document.documentElement.lang = lang==='zh' ? 'zh-Hant' : 'en';
   }
-  btns.forEach(function(b){
+  document.querySelectorAll('.lang button').forEach(function(b){
     b.addEventListener('click', function(){
-      lang = b.dataset.lang;
-      try { localStorage.setItem('wc-lang', lang); } catch(e){}
-      paint(); render();
+      lang = b.dataset.lang; try{localStorage.setItem('wc-lang',lang);}catch(e){}
+      paintLang(); if (DATA) { buildPicker(); render(); }
     });
   });
-  try { lang = localStorage.getItem('wc-lang') || lang; } catch(e){}
-  if (lang !== 'zh' && (navigator.language||'').toLowerCase().indexOf('zh') === 0) {
-    var stored = null; try { stored = localStorage.getItem('wc-lang'); } catch(e){}
-    if (!stored) lang = 'zh';
-  }
-  paint();
+  paintLang();
 
-  /* ---------- data ---------- */
   var ZH = {
     "Damage":"傷害","Attack Speed":"攻擊速度","Critical Chance":"爆擊率",
     "Critical Factor":"爆擊倍率","Health":"血量","Health Regen":"每秒回血",
@@ -193,83 +178,146 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     "Interest / Wave":"每波利息","Thorns":"荊棘傷害","Defense Absolute":"絕對防禦",
     "Lifesteal":"吸血"
   };
-  /* a plausible mid-game account, so the page is never empty */
-  var SEED = {
-    "Damage":29,"Attack Speed":4,"Critical Chance":14,"Critical Factor":41,
-    "Health":19,"Health Regen":0,"Defense Percent":2,"Cash / Wave":12,
-    "Cash Bonus":8,"Interest / Wave":0,"Thorns":8,"Defense Absolute":1,"Lifesteal":3
+  var T = {
+    wave:   {en:'Wave',    zh:'波數'},
+    hp:     {en:'Tower',   zh:'塔血量'},
+    skip:   {en:'would not buy', zh:'這波不買'},
+    maxed:  {en:'maxed',   zh:'已滿級'},
+    lv:     {en:'lv',      zh:'lv'},
+    buys:   {en:'buys',    zh:'可買'},
+    loading:{en:'Loading the policy…', zh:'正在載入策略…'},
+    failed: {en:'Could not load the policy.', zh:'策略載入失敗。'}
   };
-  var COSTS = null, levels = Object.assign({}, SEED);
-  var rows = document.getElementById('rows');
-  var cashEl = document.getElementById('cash');
+  function t(k){ return T[k][lang]; }
+  function nm(n){ return (lang==='zh' && ZH[n]) ? ZH[n] : n; }
+
+  /* ---------------- data ---------------- */
+  var POLICY=null, DATA=null, COSTS=null, cur=0;
+  var pickEl=document.getElementById('pick'), rankEl=document.getElementById('rank');
+  var cashEl=document.getElementById('cash'), outEl=document.getElementById('cashout'),
+      stateEl=document.getElementById('state');
 
   function fmt(n){
-    if (n === null || n === undefined) return '—';
-    return n >= 1e6 ? (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M'
-         : n >= 1e3 ? (n/1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/,'') + 'K'
-         : String(Math.round(n));
+    if (n==null) return '—';
+    n = Math.round(n);
+    return n>=1e6 ? (n/1e6).toFixed(2).replace(/\.?0+$/,'')+'M'
+         : n>=1e4 ? Math.round(n/1e3)+'K'
+         : n>=1e3 ? (n/1e3).toFixed(1).replace(/\.0$/,'')+'K'
+         : String(n);
   }
-  /* how many levels this cash buys, starting from `lv` */
-  function afford(name, lv, cash){
-    var t = COSTS[name]; if (!t) return {n:0, spent:0, next:null};
-    var n = 0, spent = 0, i = lv;
-    while (i < t.length) {
-      var c = t[i];
-      if (c === null || c === undefined) break;
-      if (spent + c > cash) break;
-      spent += c; n++; i++;
-      if (n > 20000) break;
+
+  /* the same forward pass SB3 runs: tanh between layers, then clip to the action space */
+  function forward(obs){
+    var x = obs.slice(), L = POLICY.layers;
+    for (var li=0; li<L.length; li++){
+      var W=L[li].w, B=L[li].b, y=new Array(W.length);
+      for (var i=0;i<W.length;i++){
+        var row=W[i], s=B[i];
+        for (var j=0;j<row.length;j++) s += row[j]*x[j];
+        y[i] = (li<L.length-1) ? Math.tanh(s) : s;
+      }
+      x=y;
     }
-    var next = (lv < t.length) ? t[lv] : null;
-    return {n:n, spent:spent, next:next, max:t.length};
+    if (POLICY.act_low) for (var k=0;k<x.length;k++)
+      x[k] = Math.min(Math.max(x[k], POLICY.act_low[k]), POLICY.act_high[k]);
+    return x;
+  }
+
+  /* only the cash-dependent dimensions move; everything else is the captured state.
+     Formulas copied from env._obs / env._upgrade_features so the numbers match exactly. */
+  function obsFor(p, cash){
+    var o = p.obs.slice(), nb = DATA.n_base;
+    o[1] = Math.log10(cash + 1) / 4;
+    for (var i=0;i<p.items.length;i++){
+      var it = p.items[i];
+      if (it.cost == null) { o[nb+2*i]=0; o[nb+2*i+1]=0; continue; }
+      o[nb+2*i]   = Math.min(Math.log10(1 + cash/it.cost)/3, 1);
+      o[nb+2*i+1] = Math.min(Math.log10(1 + (it.gain/it.cost)*cash)/2, 1);
+    }
+    return o;
+  }
+
+  function levelsAffordable(name, lv, cash){
+    var tbl = COSTS && COSTS[name]; if (!tbl) return null;
+    var n=0, spent=0, i=lv;
+    while (i<tbl.length){
+      var c=tbl[i]; if (c==null || spent+c>cash) break;
+      spent+=c; n++; i++; if (n>20000) break;
+    }
+    return n;
+  }
+
+  function buildPicker(){
+    pickEl.innerHTML='';
+    DATA.profiles.forEach(function(p, i){
+      var b=document.createElement('button');
+      b.type='button'; b.setAttribute('aria-pressed', String(i===cur));
+      b.innerHTML = '<b>'+t('wave')+' '+p.wave+'</b>' +
+                    t('hp')+' '+fmt(p.hp)+' / '+fmt(p.hp_cap);
+      b.addEventListener('click', function(){
+        cur=i;
+        var p2=DATA.profiles[cur];
+        cashEl.value = Math.round(p2.cash);
+        cashEl.max   = Math.max(2000, Math.round(p2.cash*8));
+        buildPicker(); render();
+      });
+      pickEl.appendChild(b);
+    });
   }
 
   function render(){
-    if (!COSTS) return;
-    var cash = Math.max(0, Number(cashEl.value) || 0);
-    var out = Object.keys(COSTS).map(function(name){
-      var lv = Math.max(0, Math.floor(Number(levels[name]) || 0));
-      var a = afford(name, lv, cash);
-      return {name:name, lv:lv, a:a};
-    });
-    var most = Math.max.apply(null, out.map(function(r){ return r.a.n; }));
-    out.sort(function(x, y){ return y.a.n - x.a.n; });
+    var p = DATA.profiles[cur];
+    var cash = Number(cashEl.value)||0;
+    outEl.textContent = '$' + fmt(cash);
+    stateEl.textContent = t('wave')+' '+p.wave+' · '+t('hp')+' '+fmt(p.hp)+' / '+fmt(p.hp_cap);
 
-    rows.innerHTML = '';
-    out.forEach(function(r){
-      var tr = document.createElement('tr');
-      var maxed = r.a.next === null;
-      if (maxed) tr.className = 'maxed';
-      else if (r.a.n === most && most > 0) tr.className = 'hot';
-      else if (r.a.n === 0) tr.className = 'cold';
+    var a = forward(obsFor(p, cash));
+    var rows = p.items.map(function(it,i){ return {it:it, score:a[i]}; });
+    rows.sort(function(x,y){ return y.score - x.score; });
 
-      var label = (lang === 'zh' && ZH[r.name]) ? ZH[r.name] : r.name;
-      var cap = lang === 'zh' ? '已滿級' : 'maxed';
-      tr.innerHTML =
-        '<td class="name">' + label + '</td>' +
-        '<td><input class="lvl" type="number" min="0" step="1" inputmode="numeric" ' +
-            'value="' + r.lv + '" data-name="' + r.name + '" aria-label="' + label + '"></td>' +
-        '<td class="' + (maxed ? 'dim' : '') + '">' + (maxed ? cap : '$' + fmt(r.a.next)) + '</td>' +
-        '<td class="buy">' + (maxed ? '—' : r.a.n) + '</td>' +
-        '<td class="' + (r.a.spent ? '' : 'dim') + '">' + (r.a.spent ? '$' + fmt(r.a.spent) : '—') + '</td>';
-      rows.appendChild(tr);
-    });
+    var top = rows[0] ? rows[0].score : 1;
+    var span = Math.max(top, 0.0001);
 
-    rows.querySelectorAll('.lvl').forEach(function(inp){
-      inp.addEventListener('change', function(){
-        levels[inp.dataset.name] = inp.value;
-        render();
-      });
+    rankEl.innerHTML='';
+    rows.forEach(function(r, idx){
+      var li=document.createElement('li');
+      var buying = r.score > 0 && r.it.cost != null;
+      if (idx===0 && buying) li.className='top';
+      if (!buying) li.className='out';
+
+      var pct = Math.max(0, Math.min(100, (r.score/span)*100));
+      var meta;
+      if (r.it.cost == null) meta = t('maxed');
+      else {
+        var lv = levelsAffordable(r.it.name, r.it.level, cash);
+        meta = '$'+fmt(r.it.cost) +
+               (lv!=null && lv>0 ? ' · <b>'+lv+'</b> '+t('buys') : '');
+      }
+      li.innerHTML =
+        '<span class="n">'+(buying ? (idx+1) : '·')+'</span>' +
+        '<span class="who"><span class="nm">'+nm(r.it.name)+'</span>' +
+        '<span class="bar"><i style="width:'+(buying?pct:0)+'%"></i></span></span>' +
+        '<span class="meta">'+meta+'</span>';
+      rankEl.appendChild(li);
     });
   }
 
-  cashEl.addEventListener('input', render);
+  cashEl.addEventListener('input', function(){ if(DATA) render(); });
+  rankEl.innerHTML = '<li><span class="n">·</span><span class="who">'+t('loading')+'</span><span class="meta"></span></li>';
 
-  fetch("costs.json").then(function(r){ return r.json(); }).then(function(j){
-    COSTS = j; render();
+  Promise.all([
+    fetch('policy.json').then(function(r){return r.json();}),
+    fetch('profiles.json').then(function(r){return r.json();}),
+    fetch('costs.json').then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(v){
+    POLICY=v[0]; DATA=v[1]; COSTS=v[2];
+    cur=1;
+    var p=DATA.profiles[cur];
+    cashEl.value=Math.round(p.cash);
+    cashEl.max=Math.max(2000, Math.round(p.cash*8));
+    buildPicker(); render();
   }).catch(function(){
-    rows.innerHTML = '<tr><td colspan="5" class="dim" style="text-align:center;padding:28px">' +
-      (lang === 'zh' ? '花費表載入失敗。' : 'Could not load the cost table.') + '</td></tr>';
+    rankEl.innerHTML = '<li><span class="n">·</span><span class="who">'+t('failed')+'</span><span class="meta"></span></li>';
   });
 })();
 </script>

@@ -223,74 +223,74 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
 
 <div class="hero">
   <p class="tag" data-en="Early access · The Tower" data-zh="早期版本 · The Tower">Early access · The Tower</p>
-  <h1 data-en="Know which upgrade is worth your cash." data-zh="知道這一波的錢該花在哪。">Know which upgrade is worth your cash.</h1>
+  <h1 data-en="Play less. Get further." data-zh="玩得更少，走得更遠。">Play less. Get further.</h1>
   <p class="lede"
-     data-en="Wavecall is a reinforcement-learning policy trained on a simulation of The Tower. Tell it where your account stands and it ranks your next upgrade — <b>not from a spreadsheet someone guessed at, but from a policy that learned by playing.</b>"
-     data-zh="Wavecall 是一個在 The Tower 模擬環境裡訓練出來的強化學習策略。你告訴它帳號目前的狀態，它排出這一波該買什麼 —— <b>不是別人憑感覺列的表，是一個靠玩出來的策略。</b>">
+     data-en="On the same account, on the same tier, the developer reached wave 85. Wavecall reached wave 596. <b>It is a policy that learned to play by playing — and it never gets bored on wave 300.</b>"
+     data-zh="同一個帳號、同一個 Tier，開發者本人打到第 85 波，Wavecall 打到第 596 波。<b>它是一個靠玩學會玩的策略 —— 而且它打到第 300 波也不會膩。</b>">
   </p>
 </div>
 
 <section style="border-top:0;padding-top:8px">
   <figure class="plot">
     <svg viewBox="0 0 800 210" role="img"
-      aria-label="Dot plot. Wavecall reached waves 101, 102, 127, 127 and 138 (mean 119.0). A damage-only control reached 51, 68, 69, 69 and 71 (mean 65.6).">
+      aria-label="Dot plot. The developer playing by hand reached waves 81, 83, 85, 86 and 89 (mean 84.8). Wavecall reached 577, 588, 601, 604 and 611 (mean 596.2). The two groups do not overlap.">
       <g stroke="var(--line)" stroke-width="1">
-        <line x1="170" y1="34" x2="170" y2="168"></line>
-        <line x1="370" y1="34" x2="370" y2="168"></line>
-        <line x1="570" y1="34" x2="570" y2="168"></line>
-        <line x1="770" y1="34" x2="770" y2="168"></line>
+        <line x1="150" y1="34" x2="150" y2="168"></line>
+        <line x1="341" y1="34" x2="341" y2="168"></line>
+        <line x1="532" y1="34" x2="532" y2="168"></line>
+        <line x1="722" y1="34" x2="722" y2="168"></line>
       </g>
-      <line x1="170" y1="168" x2="770" y2="168" stroke="var(--line)" stroke-width="1.5"></line>
+      <line x1="150" y1="168" x2="778" y2="168" stroke="var(--line)" stroke-width="1.5"></line>
 
       <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600">
-        <text x="8" y="60" fill="var(--accent)">Wavecall</text>
-        <text x="8" y="128" fill="var(--control)" data-en="Damage only" data-zh="只點攻擊力">Damage only</text>
+        <text x="8" y="60" fill="var(--control)" data-en="You, by hand" data-zh="你，手動玩">You, by hand</text>
+        <text x="8" y="128" fill="var(--accent)">Wavecall</text>
       </g>
       <g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">
         <text x="8" y="75">5 runs</text>
         <text x="8" y="143">5 runs</text>
       </g>
 
-      <line x1="646" y1="42" x2="646" y2="84" stroke="var(--accent)" stroke-width="2"></line>
-      <line x1="432" y1="110" x2="432" y2="152" stroke="var(--control)" stroke-width="2"></line>
-      <g font-family="IBM Plex Mono, monospace" font-size="11.5" font-weight="600">
-        <text x="646" y="35" text-anchor="middle" fill="var(--accent)">119.0</text>
-        <text x="432" y="103" text-anchor="middle" fill="var(--control)">65.6</text>
+      <line x1="231" y1="42" x2="231" y2="84" stroke="var(--control)" stroke-width="2"></line>
+      <line x1="719" y1="110" x2="719" y2="152" stroke="var(--accent)" stroke-width="2"></line>
+      <g font-family="IBM Plex Mono, monospace" font-size="12" font-weight="600">
+        <text x="231" y="35" text-anchor="middle" fill="var(--control)">84.8</text>
+        <text x="719" y="103" text-anchor="middle" fill="var(--accent)">596.2</text>
       </g>
 
-      <g fill="var(--accent)" fill-opacity=".5" stroke="var(--accent)" stroke-width="1.5">
-        <circle cx="574" cy="57" r="6.5"></circle>
-        <circle cx="578" cy="70" r="6.5"></circle>
-        <circle cx="678" cy="57" r="6.5"></circle>
-        <circle cx="678" cy="70" r="6.5"></circle>
-        <circle cx="722" cy="63.5" r="6.5"></circle>
+      <g fill="var(--control)" fill-opacity=".5" stroke="var(--control)" stroke-width="1.5">
+        <circle cx="227" cy="57" r="6"></circle>
+        <circle cx="229" cy="70" r="6"></circle>
+        <circle cx="231" cy="50" r="6"></circle>
+        <circle cx="232" cy="63.5" r="6"></circle>
+        <circle cx="235" cy="77" r="6"></circle>
       </g>
-      <g fill="var(--control)" fill-opacity=".45" stroke="var(--control)" stroke-width="1.5">
-        <circle cx="374" cy="131" r="6.5"></circle>
-        <circle cx="442" cy="124.5" r="6.5"></circle>
-        <circle cx="446" cy="137" r="6.5"></circle>
-        <circle cx="446" cy="124.5" r="6.5"></circle>
-        <circle cx="454" cy="131" r="6.5"></circle>
+      <g fill="var(--accent)" fill-opacity=".5" stroke="var(--accent)" stroke-width="1.5">
+        <circle cx="700" cy="125" r="6"></circle>
+        <circle cx="711" cy="138" r="6"></circle>
+        <circle cx="723" cy="118" r="6"></circle>
+        <circle cx="726" cy="131.5" r="6"></circle>
+        <circle cx="733" cy="145" r="6"></circle>
       </g>
 
       <g font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)" text-anchor="middle">
-        <text x="170" y="185">0</text><text x="370" y="185">50</text>
-        <text x="570" y="185">100</text><text x="770" y="185">150</text>
+        <text x="150" y="185">0</text><text x="341" y="185">200</text>
+        <text x="532" y="185">400</text><text x="722" y="185">600</text>
       </g>
-      <text x="470" y="203" font-family="IBM Plex Mono, monospace" font-size="10"
+      <text x="464" y="203" font-family="IBM Plex Mono, monospace" font-size="10"
         fill="var(--muted)" text-anchor="middle" letter-spacing="1.5"
         data-en="WAVES SURVIVED" data-zh="撐過的波數">WAVES SURVIVED</text>
     </svg>
     <figcaption
-      data-en="Ten real runs on one account — Tier 2, 4× speed, five each. Same account, same tier, same session. <b>+53.4 waves, Welch t = 6.44.</b> Spread is drawn as measured (SD 16.6 and 8.2); nothing is smoothed."
-      data-zh="同一個帳號上的十輪實機 —— Tier 2、四倍速、各五輪。同帳號、同分頁、同一天。<b>差距 +53.4 波，Welch t = 6.44。</b>散布就是實測值（標準差 16.6 與 8.2），沒有平滑過。">
+      data-en="Tier 1, same account, no upgrades in between — five runs each. <b>7.0&times;, Welch t = 82.</b> The two groups do not overlap: the best human run (89) is still 488 waves short of the worst machine run (577)."
+      data-zh="Tier 1、同一個帳號、期間沒升級過帳號 —— 各五輪。<b>7.0 倍，Welch t = 82。</b>兩組完全沒有重疊：人類最好的一場（89）離機器最差的一場（577）還差 488 波。">
     </figcaption>
   </figure>
 
   <dl class="stats">
-    <div><dt data-en="vs damage-only" data-zh="相對只點攻擊力">vs damage-only</dt><dd>1.81×</dd></div>
-    <div><dt data-en="mean waves" data-zh="平均波數">mean waves</dt><dd>119.0<small>± 16.6</small></dd></div>
-    <div><dt data-en="waves missed" data-zh="漏掉的波">waves missed</dt><dd>0<small data-en="of 10 runs" data-zh="／十輪">of 10 runs</small></dd></div>
+    <div><dt data-en="vs playing by hand" data-zh="相對手動玩">vs playing by hand</dt><dd>7.0&times;</dd></div>
+    <div><dt data-en="its mean wave" data-zh="它的平均波數">its mean wave</dt><dd>596<small>&plusmn; 14</small></dd></div>
+    <div><dt data-en="yours" data-zh="你的">yours</dt><dd>85<small>&plusmn; 3</small></dd></div>
   </dl>
 </section>
 
@@ -299,10 +299,10 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
   <div class="tiers">
     <div class="tier lead">
       <div class="badge" data-en="Free · in the browser" data-zh="免費 · 網頁版">Free · in the browser</div>
-      <h3 data-en="The planner" data-zh="規劃器">The planner</h3>
-      <p data-en="Enter your workshop levels, cards and tier. Get the upgrade order the policy would take, and what it expects each one to buy you. Works on any device. Nothing touches the game."
-         data-zh="輸入你的工坊等級、卡片和 Tier，它給出策略會採取的升級順序，以及每一項預期換到多少。任何裝置都能用，完全不碰遊戲。">Enter your workshop levels, cards and tier. Get the upgrade order the policy would take, and what it expects each one to buy you. Works on any device. Nothing touches the game.</p>
-      <a class="go" href="planner.html" data-en="Open the planner <span>&rarr;</span>" data-zh="打開規劃器 <span>&rarr;</span>">Open the planner <span>&rarr;</span></a>
+      <h3 data-en="Watch it decide" data-zh="看它怎麼決定">Watch it decide</h3>
+      <p data-en="The trained network itself, running in your browser. Pick a real moment from a run, drag the cash slider, and watch its priorities reorder. No sign-up, no download."
+         data-zh="訓練好的網路本身，在你的瀏覽器裡跑。挑一個實跑中的真實局面，拖動現金滑桿，看它的優先序重排。不用註冊、不用下載。">Enter your workshop levels, cards and tier. Get the upgrade order the policy would take, and what it expects each one to buy you. Works on any device. Nothing touches the game.</p>
+      <a class="go" href="planner.html" data-en="Try it now <span>&rarr;</span>" data-zh="現在就試 <span>&rarr;</span>">Try it now <span>&rarr;</span></a>
       <div class="price" data-en="Free, no account needed" data-zh="免費，不用註冊">Free, no account needed</div>
     </div>
     <div class="tier second">
@@ -333,13 +333,11 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
 
 <section>
   <div class="risk">
-    <h2 data-en="Read this before the waitlist" data-zh="留信箱之前先讀這段">Read this before the waitlist</h2>
-    <p data-en="<b>The planner only does maths — it never touches your game.</b> The live reader is different: it operates your phone through iPhone Mirroring, and automation of that kind is against The Tower's rules. Accounts can be suspended for it."
-       data-zh="<b>規劃器只是算數學，完全不碰你的遊戲。</b>即時版不一樣：它會透過 iPhone 鏡像操作你的手機，而這類自動化違反 The Tower 的規則，帳號可能被停權。"></p>
-    <p data-en="I can't tell you the odds of being caught, and I can't get an account back. If yours matters to you, take the planner and leave the live reader alone."
-       data-zh="我沒辦法告訴你被抓到的機率，也沒辦法把帳號救回來。如果那個帳號對你重要，就用規劃器，別碰即時版。">I can't tell you the odds of being caught, and I can't get an account back. If yours matters to you, take the planner and leave the live reader alone.</p>
-    <p data-en="What it never does: modify the game, inject anything into it, or hand you resources the game would not. Coins and gems it picks up are coins and gems you played for — it just plays faster, smarter, and never gets tired."
-       data-zh="它從不做的事：修改遊戲、注入任何東西、或給你遊戲本來不會給的資源。它收到的金幣和鑽石，都是打出來的 —— 它只是打得比較快、比較聰明，而且不會累。">What it never does: modify the game, inject anything into it, or hand you resources the game would not. Coins and gems it picks up are coins and gems you played for — it just plays faster, smarter, and never gets tired.</p>
+    <h2 data-en="Before you join the list" data-zh="留信箱之前">Before you join the list</h2>
+    <p data-en="<b>The browser page only does maths &mdash; it never touches your game.</b> The Mac version does: it plays for you, and automation is against The Tower&rsquo;s rules. Accounts get suspended for it. I can&rsquo;t tell you the odds, and I can&rsquo;t get an account back."
+       data-zh="<b>網頁版只是算數學，完全不碰你的遊戲。</b>Mac 版不一樣：它會替你玩，而自動化違反 The Tower 的規則，帳號會因此被停權。我沒辦法告訴你機率，也沒辦法把帳號救回來。">The browser page only does maths.</p>
+    <p data-en="It never modifies the game or gives you anything the game would not. Everything it collects, it played for."
+       data-zh="它不修改遊戲，也不給你遊戲本來不會給的東西。它收到的每一樣，都是打出來的。">It never modifies the game.</p>
   </div>
 </section>
 
