@@ -84,6 +84,24 @@ input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline
 .rank li.top .n{color:var(--accent)}
 .rank .who{min-width:0}
 .rank .nm{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank .nmrow{display:flex;align-items:center;gap:8px;min-width:0}
+.rank .nmrow .nm{flex:1 1 auto}
+.rank .lvbox{flex:none;display:inline-flex;align-items:center;gap:0;
+  border:1px solid var(--line);border-radius:3px;overflow:hidden;background:var(--bg)}
+.rank .lvbox.moved{border-color:var(--accent-deep)}
+.rank .lvbox button{width:22px;height:22px;line-height:1;padding:0;border:0;cursor:pointer;
+  background:transparent;color:var(--muted);font-size:14px}
+.rank .lvbox button:hover{background:var(--line-soft);color:var(--ink)}
+.rank .lvbox input{width:34px;height:22px;border:0;background:transparent;text-align:center;
+  font-family:var(--mono);font-size:12px;color:var(--ink);
+  font-variant-numeric:tabular-nums;padding:0;-moz-appearance:textfield}
+.rank .lvbox.moved input{color:var(--accent-deep);font-weight:600}
+.rank .lvbox input:focus{outline:1px solid var(--accent-deep);outline-offset:-1px}
+.editnote{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  margin-top:12px;font-size:13px;color:var(--muted);line-height:1.5}
+.editnote button{flex:none;border:1px solid var(--line);background:var(--surface);
+  color:var(--ink);border-radius:3px;padding:3px 10px;font-size:12px;cursor:pointer}
+.editnote button:hover{border-color:var(--accent-deep)}
 .rank .bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
 .rank .bar i{display:block;height:100%;background:var(--accent-deep);border-radius:2px}
 .rank li.top .bar i{background:var(--accent)}
@@ -133,14 +151,19 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
   </div>
 
   <ol class="rank" id="rank"></ol>
+
+  <div class="editnote">
+    <span id="editnote"></span>
+    <button type="button" id="resetlv" hidden></button>
+  </div>
 </div>
 
 <div class="note">
   <h2 data-en="Why this is not a lookup table" data-zh="為什麼這不是一張查表">Why this is not a lookup table</h2>
   <p data-en="Move the slider and the order really does change — because the network weighs <i>how far this money goes</i> against <i>what the next wave will hit you with</i>. With little cash it takes the cheap levels it can actually afford; with more, it commits to the expensive one."
      data-zh="拖滑桿，順序是真的會變 —— 因為網路在權衡「這筆錢走得多遠」和「下一波會打你多重」。錢少的時候它拿買得起的便宜等級；錢多的時候它才押那個貴的。"></p>
-  <p data-en="The prices come from the game's own cost table and are identical for every account. The situations are real states captured from a run on the developer's account — which is also the honest limit of this page: it shows you <i>its</i> account, not yours. Reading your own numbers, wave by wave, is what the Mac version does."
-     data-zh="價格來自遊戲自己的花費表，對每個帳號都一樣。局面則是從開發者帳號的實跑中擷取的真實狀態 —— 這也是這頁誠實的極限：它給你看的是<i>它的</i>帳號，不是你的。逐波讀你自己的數字，是 Mac 版在做的事。"></p>
+  <p data-en="The prices come from the game's own cost table and are identical for every account, so changing a level here changes its price exactly. What stays fixed is the battlefield — the wave, your tower's HP, and what is on screen at that moment — because those were captured from a real run on the developer's account and cannot be re-simulated in a browser. Reading <i>your</i> numbers, wave after wave, is what the Mac version does."
+     data-zh="價格來自遊戲自己的花費表，對每個帳號都一樣，所以你在這裡改一個等級，它的價格會照實跟著變。固定不動的是戰場本身 —— 波數、塔的血量、那一刻場上有什麼 —— 因為那是從開發者帳號的實跑中擷取的，瀏覽器裡重跑不出來。逐波讀<i>你自己</i>的數字，是 Mac 版在做的事。"></p>
 </div>
 
 <footer data-en="Wavecall is an independent third-party tool. Not affiliated with, endorsed by, or connected to Tech Tree Games or The Tower."
@@ -186,13 +209,22 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     lv:     {en:'lv',      zh:'lv'},
     buys:   {en:'buys',    zh:'可買'},
     loading:{en:'Loading the policy…', zh:'正在載入策略…'},
-    failed: {en:'Could not load the policy.', zh:'策略載入失敗。'}
+    failed: {en:'Could not load the policy.', zh:'策略載入失敗。'},
+    tier:   {en:'Tier',    zh:'Tier'},
+    enemy:  {en:'Enemy',   zh:'敵人'},
+    atk:    {en:'atk',     zh:'攻擊'},
+    reset:  {en:'Reset levels', zh:'還原等級'},
+    edited: {en:'edited',  zh:'已改'},
+    note:   {en:'Levels are yours to change — prices and payoffs are recomputed exactly. The battlefield (wave, tower HP, what is on screen) stays as captured.',
+             zh:'等級可以自己改 —— 價格和提升量會照實重算。戰場本身（波數、塔血量、場上有什麼）維持擷取當下的狀態。'}
   };
   function t(k){ return T[k][lang]; }
   function nm(n){ return (lang==='zh' && ZH[n]) ? ZH[n] : n; }
 
   /* ---------------- data ---------------- */
   var POLICY=null, DATA=null, COSTS=null, cur=0;
+  /* 使用者改過的等級：{項目名: 等級}。換 profile 就清空。 */
+  var EDIT={};
   var pickEl=document.getElementById('pick'), rankEl=document.getElementById('rank');
   var cashEl=document.getElementById('cash'), outEl=document.getElementById('cashout'),
       stateEl=document.getElementById('state');
@@ -225,12 +257,12 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
 
   /* only the cash-dependent dimensions move; everything else is the captured state.
      Formulas copied from env._obs / env._upgrade_features so the numbers match exactly. */
-  function obsFor(p, cash){
+  function obsFor(p, cash, items){
     var o = p.obs.slice(), nb = DATA.n_base;
     o[1] = Math.log10(cash + 1) / 4;
-    for (var i=0;i<p.items.length;i++){
-      var it = p.items[i];
-      if (it.cost == null) { o[nb+2*i]=0; o[nb+2*i+1]=0; continue; }
+    for (var i=0;i<items.length;i++){
+      var it = items[i];
+      if (it.cost == null || !(it.cost > 0)) { o[nb+2*i]=0; o[nb+2*i+1]=0; continue; }
       o[nb+2*i]   = Math.min(Math.log10(1 + cash/it.cost)/3, 1);
       // gain 夾 0：跟 env.py 的 _upgrade_features 一致。JS 的 log10(負數)
       // 不會丟錯，只會安靜地回 NaN 把整個排序搞爛——比 Python 當掉更難查。
@@ -239,11 +271,48 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     return o;
   }
 
+  /* 把使用者改過的等級套上去，並且**照實**重算價格和提升量：
+     價格來自 costs.json（實測，對每個帳號都一樣），
+     提升量來自 profiles.json 的 curves（這個帳號量到的面板曲線）。
+     兩者都不是內插、不是估計，跟 agent 在遊戲裡讀到的是同一條路。 */
+  /* costs.json 用 **0** 當「沒有下一級了」的哨兵，profiles.json 用 null。
+     只檢查 null 的話，0 會一路穿過去變成 gain/cost = 0/0 = NaN，
+     再 log10(1 + NaN) -> NaN，整排分數安靜地爛掉（JS 不會丟錯）。
+     所以價格一律走這個函式，兩種哨兵都當成「買不到」。 */
+  function costAt(name, lv){
+    var tbl = COSTS && COSTS[name];
+    if (!tbl || lv < 0 || lv >= tbl.length) return null;
+    var c = tbl[lv];
+    return (c == null || !(c > 0)) ? null : c;
+  }
+
+  /* 這一項最高能調到幾級：曲線表和花費表誰先到頂就聽誰的。 */
+  function maxLevel(name){
+    var tbl = COSTS && COSTS[name], cap = (DATA.lv_max != null ? DATA.lv_max - 1 : 219);
+    if (!tbl) return cap;
+    var last = Math.min(cap, tbl.length - 1);
+    while (last > 0 && costAt(name, last) == null) last--;
+    return last;
+  }
+
+  function effItems(p){
+    return p.items.map(function(it){
+      var lv = EDIT.hasOwnProperty(it.name) ? EDIT[it.name] : it.level;
+      if (lv === it.level) return it;
+      var col = DATA.curves && DATA.curves[it.name];
+      var cost = costAt(it.name, lv);
+      var gain = 0;
+      if (col && lv+1 < col.length && col[lv] > 1e-9) gain = (col[lv+1]-col[lv])/col[lv];
+      return {name:it.name, level:lv, value:(col?col[lv]:it.value), cost:cost, gain:gain,
+              moved:true};
+    });
+  }
+
   function levelsAffordable(name, lv, cash){
     var tbl = COSTS && COSTS[name]; if (!tbl) return null;
     var n=0, spent=0, i=lv;
     while (i<tbl.length){
-      var c=tbl[i]; if (c==null || spent+c>cash) break;
+      var c=costAt(name, i); if (c==null || spent+c>cash) break;
       spent+=c; n++; i++; if (n>20000) break;
     }
     return n;
@@ -257,7 +326,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
       b.innerHTML = '<b>'+t('wave')+' '+p.wave+'</b>' +
                     t('hp')+' '+fmt(p.hp)+' / '+fmt(p.hp_cap);
       b.addEventListener('click', function(){
-        cur=i;
+        cur=i; EDIT={};
         var p2=DATA.profiles[cur];
         cashEl.max   = Math.max(2000, Math.round(p2.cash*8));   // max 一定要先設
         cashEl.value = Math.round(p2.cash);
@@ -270,11 +339,15 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
   function render(){
     var p = DATA.profiles[cur];
     var cash = Number(cashEl.value)||0;
+    var items = effItems(p);
     outEl.textContent = '$' + fmt(cash);
-    stateEl.textContent = t('wave')+' '+p.wave+' · '+t('hp')+' '+fmt(p.hp)+' / '+fmt(p.hp_cap);
+    var bits = [t('wave')+' '+p.wave, t('tier')+' '+(p.tier!=null?p.tier:DATA.tier),
+                t('hp')+' '+fmt(p.hp)+' / '+fmt(p.hp_cap)];
+    if (p.enemy_hp!=null) bits.push(t('enemy')+' '+fmt(p.enemy_hp)+' hp · '+fmt(p.enemy_atk)+' '+t('atk'));
+    stateEl.textContent = bits.join(' · ');
 
-    var a = forward(obsFor(p, cash));
-    var rows = p.items.map(function(it,i){ return {it:it, score:a[i]}; });
+    var a = forward(obsFor(p, cash, items));
+    var rows = items.map(function(it,i){ return {it:it, score:a[i]}; });
     rows.sort(function(x,y){ return y.score - x.score; });
 
     var top = rows[0] ? rows[0].score : 1;
@@ -283,13 +356,13 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     rankEl.innerHTML='';
     rows.forEach(function(r, idx){
       var li=document.createElement('li');
-      var buying = r.score > 0 && r.it.cost != null;
+      var buying = r.score > 0 && r.it.cost != null && r.it.cost > 0;
       if (idx===0 && buying) li.className='top';
       if (!buying) li.className='out';
 
       var pct = Math.max(0, Math.min(100, (r.score/span)*100));
       var meta;
-      if (r.it.cost == null) meta = t('maxed');
+      if (r.it.cost == null || !(r.it.cost > 0)) meta = t('maxed');
       else {
         var lv = levelsAffordable(r.it.name, r.it.level, cash);
         meta = '$'+fmt(r.it.cost) +
@@ -297,13 +370,46 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
       }
       li.innerHTML =
         '<span class="n">'+(buying ? (idx+1) : '·')+'</span>' +
-        '<span class="who"><span class="nm">'+nm(r.it.name)+'</span>' +
-        '<span class="bar"><i style="width:'+(buying?pct:0)+'%"></i></span></span>' +
+        '<span class="who">' +
+          '<span class="nmrow">' +
+            '<span class="nm">'+nm(r.it.name)+'</span>' +
+            '<span class="lvbox' + (r.it.moved?' moved':'') + '">' +
+              '<button type="button" data-step="-1" aria-label="-">&minus;</button>' +
+              '<input type="text" inputmode="numeric" value="'+r.it.level+'" aria-label="level">' +
+              '<button type="button" data-step="1" aria-label="+">+</button>' +
+            '</span>' +
+          '</span>' +
+          '<span class="bar"><i style="width:'+(buying?pct:0)+'%"></i></span>' +
+        '</span>' +
         '<span class="meta">'+meta+'</span>';
+      var box = li.querySelector('.lvbox'), nameOf = r.it.name;
+      box.querySelectorAll('button').forEach(function(btn){
+        btn.addEventListener('click', function(){ setLevel(nameOf, curLevel(p,nameOf) + Number(btn.dataset.step)); });
+      });
+      box.querySelector('input').addEventListener('change', function(ev){
+        setLevel(nameOf, parseInt(ev.target.value, 10));
+      });
       rankEl.appendChild(li);
     });
+    resetEl.hidden = !Object.keys(EDIT).length;
+    resetEl.textContent = t('reset');
+    document.getElementById('editnote').textContent = t('note');
   }
 
+  function curLevel(p, name){
+    if (EDIT.hasOwnProperty(name)) return EDIT[name];
+    for (var i=0;i<p.items.length;i++) if (p.items[i].name===name) return p.items[i].level;
+    return 0;
+  }
+
+  function setLevel(name, lv){
+    if (!isFinite(lv)) { render(); return; }
+    EDIT[name] = Math.max(0, Math.min(maxLevel(name), Math.round(lv)));
+    render();
+  }
+
+  var resetEl=document.getElementById('resetlv');
+  resetEl.addEventListener('click', function(){ EDIT={}; render(); });
   cashEl.addEventListener('input', function(){ if(DATA) render(); });
   rankEl.innerHTML = '<li><span class="n">·</span><span class="who">'+t('loading')+'</span><span class="meta"></span></li>';
 
@@ -312,7 +418,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     fetch('profiles.json').then(function(r){return r.json();}),
     fetch('costs.json').then(function(r){return r.json();}).catch(function(){return null;})
   ]).then(function(v){
-    POLICY=v[0]; DATA=v[1]; COSTS=v[2];
+    POLICY=v[0]; DATA=v[1]; COSTS=v[2]; EDIT={};
     cur=1;
     var p=DATA.profiles[cur];
     cashEl.max=Math.max(2000, Math.round(p.cash*8));           // 同上：先 max 後 value
