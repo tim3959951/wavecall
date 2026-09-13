@@ -404,13 +404,18 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
 /* ------------------------------------------------------------------
    候補名單的收件位置。GitHub Pages 是純靜態主機，沒有後端。
 
-   兩個獨立的收件處，依序試：
-     1. Supabase —— 免費方案下這個規模等於無上限，是主要的那一份。
-     2. Formspree —— 免費方案每月 50 筆，當備援。
+   兩個收件處，分工不同：
+     1. Supabase —— 名單的正本。免費方案下這個規模等於無上限，
+        報名成不成功只看它。
+     2. Formspree —— 每一筆同時射過去一份，純粹是為了讓你信箱收到通知。
+        它每月 50 筆，撞到上限之後**通知會停、但名單不會少**，
+        因為正本在 Supabase。這是刻意選的降級方向。
 
-   為什麼要兩個：**上限撞到的時候是靜默的**。使用者看到「收到了」，
-   而你永遠不會知道有這個人存在——偏偏那正是剛紅起來、最需要他的時候。
-   兩個獨立的收件處都掛掉，才會顯示失敗，而且絕不假裝成功。
+   為什麼不能只靠 Formspree：**上限撞到的時候是靜默的**。使用者看到
+   「收到了」，而你永遠不會知道有這個人存在——偏偏那正是剛紅起來、
+   最需要他的時候。
+
+   兩邊都失敗才顯示失敗，絕不假裝成功。
 
    SUPABASE_KEY 是 publishable（anon）金鑰，本來就是要印在網頁裡的。
    資料表的 RLS 只開 insert，select / delete 對 anon 都是 401——
@@ -472,8 +477,15 @@ var FALLBACK_EMAIL = "tim909tim909@gmail.com";
     btn.disabled = true;
     say(zh ? '送出中…' : 'Sending…', true);
 
+    // Formspree 只是通知用的副本：射出去就不管結果，成不成功都不影響
+    // 使用者看到什麼。撞到每月上限時它會失敗，而那不該變成使用者的錯誤。
+    var pinged = toFormspree(payload).catch(function(){ return false; });
+
     toSupabase(payload)
-      .catch(function(){ return toFormspree(payload); })
+      .catch(function(err){
+        // 正本進不去，才真的要靠 Formspree 那一份收下這個人。
+        return pinged.then(function(ok){ if (!ok) throw err; });
+      })
       .then(function(){
         f.reset();
         say(zh ? '收到了，開放時會寄信給你。' : "Got it — I'll email you when it opens.", true);
