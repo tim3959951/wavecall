@@ -128,7 +128,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
       <label for="cash" data-en="Cash on hand" data-zh="手上的現金">Cash on hand</label>
       <output id="cashout" for="cash">—</output>
     </div>
-    <input type="range" id="cash" min="0" max="100" value="50" step="1">
+    <input type="range" id="cash" min="0" max="2000" value="500" step="1">
     <div class="state" id="state">—</div>
   </div>
 
@@ -257,8 +257,8 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
       b.addEventListener('click', function(){
         cur=i;
         var p2=DATA.profiles[cur];
+        cashEl.max   = Math.max(2000, Math.round(p2.cash*8));   // max 一定要先設
         cashEl.value = Math.round(p2.cash);
-        cashEl.max   = Math.max(2000, Math.round(p2.cash*8));
         buildPicker(); render();
       });
       pickEl.appendChild(b);
@@ -313,8 +313,8 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     POLICY=v[0]; DATA=v[1]; COSTS=v[2];
     cur=1;
     var p=DATA.profiles[cur];
+    cashEl.max=Math.max(2000, Math.round(p.cash*8));           // 同上：先 max 後 value
     cashEl.value=Math.round(p.cash);
-    cashEl.max=Math.max(2000, Math.round(p.cash*8));
     buildPicker(); render();
   }).catch(function(){
     rankEl.innerHTML = '<li><span class="n">·</span><span class="who">'+t('failed')+'</span><span class="meta"></span></li>';
