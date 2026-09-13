@@ -392,11 +392,13 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
   }
 
   function syncFields(){
-    F.wave.value = ST.wave;
-    F.hp.value   = show(ST.hp);
-    F.ehp.value  = show(ST.ehp);
-    F.eatk.value = show(ST.eatk);
-    F.cash.value = Math.round(ST.cash);
+    var a = document.activeElement;
+    function put(el, v){ if (el !== a) el.value = v; }
+    put(F.wave, ST.wave);
+    put(F.hp,   show(ST.hp));
+    put(F.ehp,  show(ST.ehp));
+    put(F.eatk, show(ST.eatk));
+    put(F.cash, Math.round(ST.cash));
   }
 
   function render(){
@@ -432,6 +434,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
         '</span>';
 
       li.querySelectorAll('input').forEach(function(inp){
+        // 這裡不用 input：render() 會重建整個列表，正在打字的欄位會被抽掉。
         inp.addEventListener('change', function(){ itemEdit(r.name, inp.dataset.k, inp.value); });
       });
       rankEl.appendChild(li);
@@ -456,17 +459,20 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
   }
 
   function topEdit(el, key, apply){
-    el.addEventListener('change', function(){
-      var v = num(el.value);
-      if (v != null && apply(v) !== false) render(); else render();
-    });
+    function go(){ var v = num(el.value); if (v != null) apply(v); render(); }
+    el.addEventListener('input', go);      // 邊打邊算
+    el.addEventListener('change', go);     // 點掉 / 按 Enter 時補一次
   }
   topEdit(F.wave, 'wave', function(v){ if (v>=1) ST.wave = Math.round(v); });
   topEdit(F.hp,   'hp',   function(v){ if (v>0)  ST.hp = v; });
   topEdit(F.ehp,  'ehp',  function(v){ if (v>0)  ST.ehp = v; });
   topEdit(F.eatk, 'eatk', function(v){ if (v>0)  ST.eatk = v; });
   topEdit(F.cash, 'cash', function(v){
-    if (v>=0){ ST.cash = v; slider.max = Math.max(Number(slider.max), Math.round(v)); slider.value = Math.round(v); }
+    if (v>=0){
+      ST.cash = v;
+      slider.max = Math.max(Number(slider.max), Math.round(v));   // max 一定要先設
+      slider.value = Math.round(v);
+    }
   });
   slider.addEventListener('input', function(){
     if (!ST) return; ST.cash = Number(slider.value)||0; render();
