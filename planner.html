@@ -241,6 +241,14 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
          ehp:document.getElementById('f-ehp'), eatk:document.getElementById('f-eatk'),
          cash:document.getElementById('f-cash')};
 
+  /* 輸入框裡只能放能被讀回來的純數字。fmt() 的 "1.1K" 一旦被塞進
+     可編輯欄位，使用者只要改隔壁那格，這格就會被 parseFloat 讀成 1.1。 */
+  function show(n){
+    if (n == null || !isFinite(n)) return '';
+    if (Math.abs(n) >= 1000) return String(Math.round(n));
+    return String(Number(n.toPrecision(6)));
+  }
+
   function fmt(n){
     if (n==null) return '—';
     var a=Math.abs(n);
@@ -302,7 +310,14 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     return (col[lv+1] - col[lv]) / col[lv];
   }
 
-  function num(v){ var x = parseFloat(String(v).replace(/[, $]/g,'')); return isFinite(x) ? x : null; }
+  function num(v){
+    var t = String(v).trim().replace(/[, $]/g,'');
+    var m = t.match(/^(-?[0-9.]+)\s*([kKmMbB])$/);
+    var x = parseFloat(m ? m[1] : t);
+    if (!isFinite(x)) return null;
+    if (m) x *= ({k:1e3, m:1e6, b:1e9})[m[2].toLowerCase()];
+    return x;
+  }
 
   /* ---------------- state ---------------- */
   function loadPreset(i){
@@ -378,9 +393,9 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
 
   function syncFields(){
     F.wave.value = ST.wave;
-    F.hp.value   = ST.hp;
-    F.ehp.value  = ST.ehp;
-    F.eatk.value = ST.eatk;
+    F.hp.value   = show(ST.hp);
+    F.ehp.value  = show(ST.ehp);
+    F.eatk.value = show(ST.eatk);
     F.cash.value = Math.round(ST.cash);
   }
 
@@ -410,8 +425,8 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
             '<span class="buys">'+(buys>0 ? '<b>'+buys+'</b> '+t('buys') : (live?'':t('maxed')))+'</span>' +
           '</span>' +
           '<span class="ins">' +
-            '<label><em>'+t('val')+'</em><input type="text" inputmode="decimal" data-k="value" value="'+fmt(it.value)+'"></label>' +
-            '<label><em>'+t('next')+'</em><input type="text" inputmode="decimal" data-k="cost" value="'+(live?it.cost:'')+'"></label>' +
+            '<label><em>'+t('val')+'</em><input type="text" inputmode="decimal" data-k="value" value="'+show(it.value)+'"></label>' +
+            '<label><em>'+t('next')+'</em><input type="text" inputmode="decimal" data-k="cost" value="'+(live?show(it.cost):'')+'"></label>' +
           '</span>' +
           '<span class="bar"><i style="width:'+(buying?pct:0)+'%"></i></span>' +
         '</span>';
