@@ -402,48 +402,87 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
 
 <script>
 /* ------------------------------------------------------------------
-   候補名單的收件位置。
-   GitHub Pages 是純靜態主機，**沒有任何後端**，所以表單不能只靠 HTML。
-   在 Formspree（免費方案）開一個表單，把它給你的網址貼到下面這一行。
-   沒設定之前，送出會退回成寄信 —— 寧可讓人看到「要寄信」，
-   也不要讓表單看起來送出成功、其實什麼都沒收到。
+   候補名單的收件位置。GitHub Pages 是純靜態主機，沒有後端。
+
+   兩個獨立的收件處，依序試：
+     1. Supabase —— 免費方案下這個規模等於無上限，是主要的那一份。
+     2. Formspree —— 免費方案每月 50 筆，當備援。
+
+   為什麼要兩個：**上限撞到的時候是靜默的**。使用者看到「收到了」，
+   而你永遠不會知道有這個人存在——偏偏那正是剛紅起來、最需要他的時候。
+   兩個獨立的收件處都掛掉，才會顯示失敗，而且絕不假裝成功。
+
+   SUPABASE_KEY 是 publishable（anon）金鑰，本來就是要印在網頁裡的。
+   資料表的 RLS 只開 insert，select / delete 對 anon 都是 401——
+   驗證過：讀取和刪除都拿到 permission denied。
 ------------------------------------------------------------------- */
+var SUPABASE_URL = "https://iyjodzxjodygjpkvlvwt.supabase.co";
+var SUPABASE_KEY = "sb_publishable_oJV1lC6n8f7KfJ8sopjIoA__P_ina3K";
 var FORM_ENDPOINT = "https://formspree.io/f/mnpqkjgb";
 var FALLBACK_EMAIL = "tim909tim909@gmail.com";
 
 (function(){
   var f = document.getElementById('waitlist');
   var msg = document.getElementById('formmsg');
+  var btn = f.querySelector('button[type="submit"]');
   function say(t, ok){
     msg.textContent = t; msg.hidden = false;
     msg.style.color = ok ? 'var(--accent)' : 'var(--warn)';
   }
+
+  function toSupabase(payload){
+    return fetch(SUPABASE_URL + '/rest/v1/waitlist', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'     // 不要回傳新增的那一列，否則會需要 select 權限
+      },
+      body: JSON.stringify(payload)
+    }).then(function(r){
+      // 409 = 這個信箱已經在名單上了。對使用者來說那就是成功。
+      if (r.ok || r.status === 409) return true;
+      throw new Error('supabase ' + r.status);
+    });
+  }
+
+  function toFormspree(payload){
+    if (!FORM_ENDPOINT) throw new Error('no formspree');
+    return fetch(FORM_ENDPOINT, {
+      method: 'POST',
+      headers: {'Accept':'application/json','Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    }).then(function(r){
+      if (r.ok) return true;
+      throw new Error('formspree ' + r.status);
+    });
+  }
+
   f.addEventListener('submit', function(e){
     e.preventDefault();
-    var email = f.querySelector('#email').value.trim();
-    if (!email) return;
     var zh = document.documentElement.lang.indexOf('zh') === 0;
+    var email = f.querySelector('#email').value.trim().toLowerCase();
+    if (!email) return;
     // 蜜罐：真人看不到這一格，填了就是機器人。假裝成功、不送出。
     if (f.querySelector('#company').value) { f.reset(); say(zh ? '收到了。' : 'Got it.', true); return; }
     var macEl = f.querySelector('input[name="mac"]:checked');
-    var mac = macEl ? macEl.value : '';
-    if (!FORM_ENDPOINT) {
-      window.location.href = 'mailto:' + FALLBACK_EMAIL +
-        '?subject=' + encodeURIComponent('Wavecall waitlist') +
-        '&body=' + encodeURIComponent(email + '\nMac: ' + mac);
-      say(zh ? '幫你開了郵件視窗，寄出就算報名。' : 'Opened your mail app — send it and you are on the list.', true);
-      return;
-    }
-    fetch(FORM_ENDPOINT, {
-      method: 'POST',
-      headers: {'Accept':'application/json','Content-Type':'application/json'},
-      body: JSON.stringify({email: email, mac: mac, ack: 'yes'})
-    }).then(function(r){
-      if (r.ok) { f.reset(); say(zh ? '收到了，開放時會寄信給你。' : "Got it — I'll email you when it opens.", true); }
-      else { say(zh ? '送出失敗，請直接寄信給我：' + FALLBACK_EMAIL : 'That did not go through. Email me instead: ' + FALLBACK_EMAIL, false); }
-    }).catch(function(){
-      say(zh ? '送出失敗，請直接寄信給我：' + FALLBACK_EMAIL : 'That did not go through. Email me instead: ' + FALLBACK_EMAIL, false);
-    });
+    var payload = {email: email, mac: macEl ? macEl.value : '', source: 'wavecall'};
+
+    btn.disabled = true;
+    say(zh ? '送出中…' : 'Sending…', true);
+
+    toSupabase(payload)
+      .catch(function(){ return toFormspree(payload); })
+      .then(function(){
+        f.reset();
+        say(zh ? '收到了，開放時會寄信給你。' : "Got it — I'll email you when it opens.", true);
+      })
+      .catch(function(){
+        // 兩邊都不通。不假裝成功——直接給一條他一定能走的路。
+        say((zh ? '送出失敗，請直接寄信給我：' : 'That did not go through. Email me instead: ') + FALLBACK_EMAIL, false);
+      })
+      .then(function(){ btn.disabled = false; });
   });
 })();
 
