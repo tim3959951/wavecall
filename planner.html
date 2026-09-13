@@ -232,7 +232,9 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
       var it = p.items[i];
       if (it.cost == null) { o[nb+2*i]=0; o[nb+2*i+1]=0; continue; }
       o[nb+2*i]   = Math.min(Math.log10(1 + cash/it.cost)/3, 1);
-      o[nb+2*i+1] = Math.min(Math.log10(1 + (it.gain/it.cost)*cash)/2, 1);
+      // gain 夾 0：跟 env.py 的 _upgrade_features 一致。JS 的 log10(負數)
+      // 不會丟錯，只會安靜地回 NaN 把整個排序搞爛——比 Python 當掉更難查。
+      o[nb+2*i+1] = Math.min(Math.log10(1 + (Math.max(it.gain,0)/it.cost)*cash)/2, 1);
     }
     return o;
   }
