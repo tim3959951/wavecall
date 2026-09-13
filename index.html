@@ -150,12 +150,11 @@ figcaption b{color:var(--ink);font-weight:600}
 .tier .go span{font-family:var(--mono);font-weight:400;opacity:.7}
 
 /* demo */
-.demo{margin-top:20px;border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--surface)}
-.demo video{display:block;width:100%;height:auto;background:#000}
-.demo .cap{
-  font-family:var(--mono);font-size:12px;color:var(--muted);
-  padding:12px 16px;border-top:1px solid var(--line-soft);
-}
+/* 影片是手機直式（720x1280）。寬度給滿會變成一根超高的柱子，
+   所以限高、置中，讓它在桌機和手機上都是一支手機的比例。 */
+.demo{margin-top:20px;display:flex;justify-content:center}
+.demo video{display:block;width:auto;max-width:100%;height:min(70vh,620px);
+  background:#000;border:1px solid var(--line);border-radius:10px}
 
 /* flow */
 ol.flow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:18px}
@@ -339,15 +338,14 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
 </section>
 
 <section id="demo">
-  <h2 data-en="One minute, unedited" data-zh="一分鐘，沒有剪接">One minute, unedited</h2>
-  <p data-en="A Tier 2 run with nobody at the keyboard. It reads the panel, buys the upgrade it ranked first, collects the gems, and starts the next round on its own."
-     data-zh="一局 Tier 2，全程沒有人在鍵盤前。它讀面板、買下它排第一的升級、收鑽石，然後自己開下一局。">A Tier 2 run with nobody at the keyboard. It reads the panel, buys the upgrade it ranked first, collects the gems, and starts the next round on its own.</p>
+  <h2 data-en="Nobody is clicking. The AI is." data-zh="沒有人在點。是 AI 在點。">Nobody is clicking. The AI is.</h2>
+  <p data-en="Nobody at the keyboard. It reads the panel, buys the upgrade it ranked first, and when the run finally ends it taps Retry and starts the next one &mdash; by itself."
+     data-zh="全程沒有人在鍵盤前。它讀面板、買下它排第一的升級，等這一場真的結束了，它自己按 Retry、自己開下一場。">Nobody at the keyboard.</p>
   <div class="demo">
-    <video controls preload="none" playsinline poster="demo-poster.jpg" width="1280" height="720">
+    <video controls autoplay muted loop playsinline preload="metadata"
+           poster="demo-poster.jpg" width="720" height="1280">
       <source src="demo.mp4" type="video/mp4">
     </video>
-    <div class="cap" data-en="Recorded on the developer&rsquo;s own account. Speed shown is the game&rsquo;s own 4&times; setting, not sped-up footage."
-         data-zh="錄自開發者自己的帳號。畫面速度是遊戲本身的 4 倍速設定，不是後製快轉。">Recorded on the developer&rsquo;s own account. Speed shown is the game&rsquo;s own 4&times; setting, not sped-up footage.</div>
   </div>
 </section>
 
