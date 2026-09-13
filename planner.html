@@ -144,14 +144,14 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
 
 <div class="panel">
   <div class="grid">
-    <label class="fld"><span data-en="Wave" data-zh="波數">Wave</span>
-      <input type="text" inputmode="numeric" id="f-wave"></label>
-    <label class="fld"><span data-en="Tower HP now" data-zh="塔目前血量">Tower HP now</span>
-      <input type="text" inputmode="decimal" id="f-hp"></label>
     <label class="fld"><span data-en="Enemy HP" data-zh="敵人血量">Enemy HP</span>
       <input type="text" inputmode="decimal" id="f-ehp"></label>
     <label class="fld"><span data-en="Enemy attack" data-zh="敵人攻擊">Enemy attack</span>
       <input type="text" inputmode="decimal" id="f-eatk"></label>
+    <label class="fld"><span data-en="Tower HP now" data-zh="塔目前血量">Tower HP now</span>
+      <input type="text" inputmode="decimal" id="f-hp"></label>
+    <label class="fld"><span data-en="Wave" data-zh="波數">Wave</span>
+      <input type="text" inputmode="numeric" id="f-wave"></label>
   </div>
 
   <div class="cashrow">
@@ -163,7 +163,8 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
   </div>
 
   <div class="presets" id="presets">
-    <span class="lab" data-en="Start from" data-zh="從這裡開始">Start from</span>
+    <span class="lab" data-en="Start from an account this strong"
+          data-zh="挑一個跟你差不多強的帳號">Start from an account this strong</span>
   </div>
 
   <ol class="rank" id="rank"></ol>
@@ -224,6 +225,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     maxed:  {en:'maxed',  zh:'已滿級'},
     reset:  {en:'Reset',  zh:'還原'},
     wave:   {en:'Wave',   zh:'波數'},
+    tower:  {en:'Tower',  zh:'塔血量'},
     foot:   {en:'Type over anything. Everything the network reads is recomputed from what you type.',
              zh:'每一格都可以直接改。網路讀到的東西會照你打的數字整個重算。'},
     loading:{en:'Loading the policy…', zh:'正在載入策略…'},
@@ -384,7 +386,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:36px;padding-block:22px 
     presetEl.querySelectorAll('button').forEach(function(b){ b.remove(); });
     DATA.profiles.forEach(function(p,i){
       var b=document.createElement('button');
-      b.type='button'; b.textContent = t('wave')+' '+p.wave;
+      b.type='button'; b.textContent = t('tower')+' '+fmt(p.hp_cap);
       b.setAttribute('aria-pressed', String(i===preset));
       b.addEventListener('click', function(){ loadPreset(i); buildPresets(); render(); });
       presetEl.appendChild(b);
