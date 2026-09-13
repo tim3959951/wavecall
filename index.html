@@ -152,6 +152,12 @@ figcaption b{color:var(--ink);font-weight:600}
 /* demo */
 /* 影片是手機直式（720x1280）。寬度給滿會變成一根超高的柱子，
    所以限高、置中，讓它在桌機和手機上都是一支手機的比例。 */
+.mac{border:0;padding:0;margin:0 0 12px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mac legend{float:left;width:100%;font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);padding:0;margin-bottom:8px}
+.mac label{display:inline-flex;align-items:center;gap:7px;font-size:14.5px;cursor:pointer}
+.mac input{accent-color:var(--accent);width:17px;height:17px;margin:0}
+
 .demo{margin-top:20px;display:flex;justify-content:center}
 .demo video{display:block;width:auto;max-width:100%;height:min(70vh,620px);
   background:#000;border:1px solid var(--line);border-radius:10px}
@@ -363,6 +369,15 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
       <button class="cta" type="submit" data-en="Join the list" data-zh="加入名單">Join the list</button>
     </div>
 
+    <fieldset class="mac">
+      <legend data-en="Do you have a Mac?" data-zh="你有 Mac 嗎？">Do you have a Mac?</legend>
+      <label><input type="radio" name="mac" value="yes" required>
+        <span data-en="Yes" data-zh="有">Yes</span></label>
+      <label><input type="radio" name="mac" value="no">
+        <span data-en="No &mdash; tell me if it ever runs elsewhere"
+              data-zh="沒有 &mdash;&mdash; 之後有別的平台再通知我">No</span></label>
+    </fieldset>
+
     <div class="check">
       <input type="checkbox" id="ack" name="ack" value="yes" required>
       <label for="ack"
@@ -393,7 +408,7 @@ footer{border-top:1px solid var(--line-soft);margin-top:40px;padding-block:24px 
    沒設定之前，送出會退回成寄信 —— 寧可讓人看到「要寄信」，
    也不要讓表單看起來送出成功、其實什麼都沒收到。
 ------------------------------------------------------------------- */
-var FORM_ENDPOINT = "";              // 例如 "https://formspree.io/f/xxxxxxx"
+var FORM_ENDPOINT = "https://formspree.io/f/mnpqkjgb";
 var FALLBACK_EMAIL = "tim909tim909@gmail.com";
 
 (function(){
@@ -408,17 +423,21 @@ var FALLBACK_EMAIL = "tim909tim909@gmail.com";
     var email = f.querySelector('#email').value.trim();
     if (!email) return;
     var zh = document.documentElement.lang.indexOf('zh') === 0;
+    // 蜜罐：真人看不到這一格，填了就是機器人。假裝成功、不送出。
+    if (f.querySelector('#company').value) { f.reset(); say(zh ? '收到了。' : 'Got it.', true); return; }
+    var macEl = f.querySelector('input[name="mac"]:checked');
+    var mac = macEl ? macEl.value : '';
     if (!FORM_ENDPOINT) {
       window.location.href = 'mailto:' + FALLBACK_EMAIL +
         '?subject=' + encodeURIComponent('Wavecall waitlist') +
-        '&body=' + encodeURIComponent(email);
+        '&body=' + encodeURIComponent(email + '\nMac: ' + mac);
       say(zh ? '幫你開了郵件視窗，寄出就算報名。' : 'Opened your mail app — send it and you are on the list.', true);
       return;
     }
     fetch(FORM_ENDPOINT, {
       method: 'POST',
       headers: {'Accept':'application/json','Content-Type':'application/json'},
-      body: JSON.stringify({email: email})
+      body: JSON.stringify({email: email, mac: mac, ack: 'yes'})
     }).then(function(r){
       if (r.ok) { f.reset(); say(zh ? '收到了，開放時會寄信給你。' : "Got it — I'll email you when it opens.", true); }
       else { say(zh ? '送出失敗，請直接寄信給我：' + FALLBACK_EMAIL : 'That did not go through. Email me instead: ' + FALLBACK_EMAIL, false); }
